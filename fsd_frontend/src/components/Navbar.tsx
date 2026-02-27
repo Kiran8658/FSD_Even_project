@@ -69,8 +69,8 @@ export function Navbar() {
           <button
             onClick={toggleTheme}
             style={{
-              background: 'rgba(88, 166, 255, 0.1)',
-              border: '1px solid rgba(88, 166, 255, 0.3)',
+              background: 'rgba(161, 0, 255, 0.1)',
+              border: '1px solid rgba(161, 0, 255, 0.3)',
               borderRadius: 'var(--radius-full)',
               padding: 'var(--space-sm) var(--space-md)',
               color: 'var(--text-primary)',
@@ -82,12 +82,12 @@ export function Navbar() {
               justifyContent: 'center'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(88, 166, 255, 0.2)'
-              e.currentTarget.style.borderColor = 'rgba(88, 166, 255, 0.5)'
+              e.currentTarget.style.background = 'rgba(161, 0, 255, 0.2)'
+              e.currentTarget.style.borderColor = 'rgba(161, 0, 255, 0.5)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(88, 166, 255, 0.1)'
-              e.currentTarget.style.borderColor = 'rgba(88, 166, 255, 0.3)'
+              e.currentTarget.style.background = 'rgba(161, 0, 255, 0.1)'
+              e.currentTarget.style.borderColor = 'rgba(161, 0, 255, 0.3)'
             }}
             title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
@@ -103,20 +103,20 @@ export function Navbar() {
                   alignItems: 'center',
                   gap: 'var(--space-sm)',
                   padding: 'var(--space-sm) var(--space-md)',
-                  background: 'rgba(9, 105, 218, 0.1)',
-                  border: '1px solid rgba(9, 105, 218, 0.3)',
+                  background: 'rgba(161, 0, 255, 0.1)',
+                  border: '1px solid rgba(161, 0, 255, 0.3)',
                   borderRadius: 'var(--radius-full)',
                   color: 'var(--text-primary)',
                   cursor: 'pointer',
                   transition: 'all var(--transition-fast)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(9, 105, 218, 0.2)'
-                  e.currentTarget.style.borderColor = 'rgba(9, 105, 218, 0.5)'
+                  e.currentTarget.style.background = 'rgba(161, 0, 255, 0.2)'
+                  e.currentTarget.style.borderColor = 'rgba(161, 0, 255, 0.5)'
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(9, 105, 218, 0.1)'
-                  e.currentTarget.style.borderColor = 'rgba(9, 105, 218, 0.3)'
+                  e.currentTarget.style.background = 'rgba(161, 0, 255, 0.1)'
+                  e.currentTarget.style.borderColor = 'rgba(161, 0, 255, 0.3)'
                 }}
               >
                 <div style={{
@@ -175,7 +175,7 @@ export function Navbar() {
                         borderRadius: 'var(--radius-md)'
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'rgba(248, 81, 73, 0.1)'
+                        e.currentTarget.style.background = 'rgba(255, 23, 68, 0.1)'
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.background = 'transparent'
@@ -274,8 +274,8 @@ export function Navbar() {
           position: sticky;
           top: 0;
           z-index: 100;
-          backdrop-filter: blur(10px);
-          background-color: rgba(246, 248, 250, 0.95);
+          backdrop-filter: blur(16px);
+          background-color: rgba(10, 10, 10, 0.85);
         }
 
         @media (max-width: 768px) {

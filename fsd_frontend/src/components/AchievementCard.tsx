@@ -10,7 +10,7 @@ export function AchievementCard({ achievement }: AchievementCardProps) {
       padding: 'var(--space-md)',
       borderRadius: 'var(--radius-lg)',
       background: achievement.unlocked 
-        ? 'linear-gradient(135deg, rgba(88, 166, 255, 0.1), rgba(121, 192, 255, 0.05))'
+        ? 'linear-gradient(135deg, rgba(161, 0, 255, 0.1), rgba(123, 47, 190, 0.05))'
         : 'rgba(100, 109, 118, 0.1)',
       border: `2px solid ${achievement.unlocked 
         ? 'var(--accent-primary)' 
@@ -21,20 +21,20 @@ export function AchievementCard({ achievement }: AchievementCardProps) {
       opacity: achievement.unlocked ? 1 : 0.6,
       transform: achievement.unlocked ? 'scale(1.05)' : 'scale(1)',
       boxShadow: achievement.unlocked 
-        ? '0 0 20px rgba(88, 166, 255, 0.3)' 
+        ? '0 0 20px rgba(161, 0, 255, 0.3)' 
         : 'none'
     }}
     onMouseEnter={(e) => {
       if (achievement.unlocked) {
         const el = e.currentTarget
         el.style.transform = 'scale(1.1)'
-        el.style.boxShadow = '0 0 30px rgba(88, 166, 255, 0.5)'
+        el.style.boxShadow = '0 0 30px rgba(161, 0, 255, 0.5)'
       }
     }}
     onMouseLeave={(e) => {
       const el = e.currentTarget
       el.style.transform = 'scale(1.05)'
-      el.style.boxShadow = '0 0 20px rgba(88, 166, 255, 0.3)'
+      el.style.boxShadow = '0 0 20px rgba(161, 0, 255, 0.3)'
     }}>
       <div style={{ fontSize: '2.5em', marginBottom: 'var(--space-sm)' }}>
         {achievement.icon}

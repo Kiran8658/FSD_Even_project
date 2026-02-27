@@ -167,7 +167,7 @@ export default function ProfilePage() {
                     transition: 'all 0.3s ease'
                   }}
                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(161, 0, 255, 0.1)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(161, 0, 255, 0.05)'>
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(161, 0, 255, 0.05)'}>
                     <div style={{
                       width: '24px',
                       height: '24px',

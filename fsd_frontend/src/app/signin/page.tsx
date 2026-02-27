@@ -67,8 +67,8 @@ export default function SignInPage() {
         padding: 'var(--space-xl)',
         background: 'var(--bg-primary)',
         backgroundImage: `
-          radial-gradient(circle at 20% 50%, rgba(161, 0, 255, 0.06) 0%, transparent 50%),
-          radial-gradient(circle at 80% 80%, rgba(123, 47, 190, 0.06) 0%, transparent 50%)
+          radial-gradient(circle at 20% 50%, rgba(14, 165, 233, 0.06) 0%, transparent 50%),
+          radial-gradient(circle at 80% 80%, rgba(2, 132, 199, 0.06) 0%, transparent 50%)
         `
       }}>
         <div className="card elevated" style={{
@@ -76,7 +76,7 @@ export default function SignInPage() {
           maxWidth: '450px',
           background: 'var(--bg-secondary)',
           backdropFilter: 'blur(20px)',
-          borderColor: 'rgba(161, 0, 255, 0.2)'
+          borderColor: 'rgba(14, 165, 233, 0.2)'
         }}>
           {/* Header */}
           <div style={{
@@ -155,7 +155,7 @@ export default function SignInPage() {
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = 'var(--accent-primary)'
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(161, 0, 255, 0.15)'
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(14, 165, 233, 0.15)'
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = 'var(--border-subtle)'
@@ -206,7 +206,7 @@ export default function SignInPage() {
                 }}
                 onFocus={(e) => {
                   e.currentTarget.style.borderColor = 'var(--accent-primary)'
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(161, 0, 255, 0.15)'
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(14, 165, 233, 0.15)'
                 }}
                 onBlur={(e) => {
                   e.currentTarget.style.borderColor = 'var(--border-subtle)'
@@ -258,8 +258,8 @@ export default function SignInPage() {
               width: '100%',
               padding: 'var(--space-md)',
               marginBottom: 'var(--space-lg)',
-              background: 'rgba(161, 0, 255, 0.1)',
-              border: '1px solid rgba(161, 0, 255, 0.3)',
+              background: 'rgba(14, 165, 233, 0.1)',
+              border: '1px solid rgba(14, 165, 233, 0.3)',
               borderRadius: 'var(--radius-lg)',
               color: 'var(--accent-primary)',
               fontWeight: 600,
@@ -268,12 +268,12 @@ export default function SignInPage() {
               transition: 'all var(--transition-fast)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(161, 0, 255, 0.2)'
-              e.currentTarget.style.borderColor = 'rgba(161, 0, 255, 0.5)'
+              e.currentTarget.style.background = 'rgba(14, 165, 233, 0.2)'
+              e.currentTarget.style.borderColor = 'rgba(14, 165, 233, 0.5)'
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(161, 0, 255, 0.1)'
-              e.currentTarget.style.borderColor = 'rgba(161, 0, 255, 0.3)'
+              e.currentTarget.style.background = 'rgba(14, 165, 233, 0.1)'
+              e.currentTarget.style.borderColor = 'rgba(14, 165, 233, 0.3)'
             }}
           >
             Try Demo Account

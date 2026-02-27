@@ -1,6 +1,15 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Navbar } from '../components/Navbar'
+import { useTheme } from '../context/ThemeContext'
+
+const TYPING_STRINGS = [
+  'Track Coding Streaks',
+  'Master New Skills',
+  'Crush DSA Problems',
+  'Stay Consistent',
+  'Build Great Habits',
+]
 
 export default function LandingPage() {
   const canvasRef = useRef<HTMLCanvasElement>(null)

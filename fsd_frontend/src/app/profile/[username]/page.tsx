@@ -73,6 +73,11 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null)
   const [statsExpanded, setStatsExpanded] = useState(true)
   const [addPlatformVisible, setAddPlatformVisible] = useState(false)
+  const [showPlatformModal, setShowPlatformModal] = useState(false)
+  const [platformUsernames, setPlatformUsernames] = useState<Record<string, string>>({
+    github: '', leetcode: '', codestudio: '', geeksforgeeks: '', interviewbit: '', codechef: '', codeforces: '', hackerrank: '', atcoder: ''
+  })
+  const [verifiedPlatforms, setVerifiedPlatforms] = useState<Set<string>>(new Set(['github', 'leetcode', 'codechef', 'codeforces', 'hackerrank']))
   const [toast, setToast] = useState<string | null>(null)
 
   const showToast = (msg: string) => {
@@ -366,13 +371,8 @@ export default function ProfilePage() {
                 ))}
               </div>}
 
-              {addPlatformVisible && (
-                <div style={{ marginTop: 'var(--space-md)', padding: 'var(--space-md)', background: 'rgba(14,165,233,0.07)', borderRadius: 'var(--radius-md)', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>
-                  Platform linking coming soon! Connect your LeetCode, CodeForces &amp; more from Settings.
-                </div>
-              )}
               <button
-                onClick={() => { setAddPlatformVisible(!addPlatformVisible); navigate('/settings') }}
+                onClick={() => setShowPlatformModal(true)}
                 style={{
                   width: '100%',
                   marginTop: 'var(--space-md)',
@@ -391,6 +391,121 @@ export default function ProfilePage() {
               >
                 + Add Platform
               </button>
+
+              {/* Platform Modal */}
+              {showPlatformModal && (
+                <div style={{
+                  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 1000,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
+                }} onClick={(e) => { if (e.target === e.currentTarget) setShowPlatformModal(false) }}>
+                  <div style={{
+                    background: 'var(--bg-card)', borderRadius: '16px', width: '100%', maxWidth: '900px',
+                    height: '85vh', display: 'flex', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.5)'
+                  }}>
+                    {/* Left Sidebar */}
+                    <div style={{ width: '220px', flexShrink: 0, borderRight: '1px solid var(--border-subtle)', padding: '24px 0', display: 'flex', flexDirection: 'column', gap: '4px', background: 'var(--bg-primary)' }}>
+                      <button onClick={() => setShowPlatformModal(false)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', fontSize: 'var(--font-size-sm)', marginBottom: '8px', textAlign: 'left' }}>
+                        ← Back to Profile
+                      </button>
+                      {[
+                        { icon: '👤', label: 'Basic Info' },
+                        { icon: '🪪', label: 'Profile Details' },
+                        { icon: '⊞', label: 'Platform', active: true },
+                        { icon: '🔒', label: 'Visibility' },
+                        { icon: '🔗', label: 'Accounts' },
+                      ].map((item) => (
+                        <button key={item.label} style={{
+                          display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 20px',
+                          background: item.active ? 'rgba(14,165,233,0.12)' : 'none', border: 'none', cursor: 'pointer',
+                          color: item.active ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                          fontWeight: item.active ? 600 : 400, fontSize: 'var(--font-size-sm)', textAlign: 'left',
+                          borderRadius: '0', width: '100%', transition: 'background 0.15s'
+                        }}
+                          onMouseEnter={(e) => { if (!item.active) e.currentTarget.style.background = 'rgba(14,165,233,0.06)' }}
+                          onMouseLeave={(e) => { if (!item.active) e.currentTarget.style.background = 'none' }}
+                        >
+                          <span style={{ fontSize: '16px' }}>{item.icon}</span> {item.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Right Content */}
+                    <div style={{ flex: 1, overflowY: 'auto', padding: '32px 36px' }}>
+                      <h2 style={{ margin: '0 0 4px', fontSize: '1.4rem', fontWeight: 700 }}>Platforms</h2>
+                      <p style={{ margin: '0 0 28px', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>You can update and verify your platform details here.</p>
+
+                      {/* Helper function rendered inline */}
+                      {(() => {
+                        const renderRow = (p: { key: string; label: string; icon: string; prefix: string }, borderBottom: boolean) => (
+                          <div key={p.key} style={{ display: 'flex', alignItems: 'center', gap: '14px', paddingBottom: '18px', marginBottom: borderBottom ? '18px' : '0', borderBottom: borderBottom ? '1px solid var(--border-subtle)' : 'none' }}>
+                            <img src={p.icon} alt={p.label} width="30" height="30" style={{ flexShrink: 0 }} />
+                            <span style={{ width: '130px', fontWeight: 500, fontSize: 'var(--font-size-sm)', flexShrink: 0, color: 'var(--text-primary)' }}>{p.label} ›</span>
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', border: '1px solid var(--border-subtle)', borderRadius: '8px', overflow: 'hidden', background: 'var(--bg-secondary)' }}>
+                              <span style={{ padding: '9px 10px', fontSize: '11px', color: 'var(--text-tertiary)', borderRight: '1px solid var(--border-subtle)', whiteSpace: 'nowrap', background: 'var(--bg-primary)', lineHeight: 1.4 }}>{p.prefix}</span>
+                              <input
+                                placeholder="johndoe"
+                                value={platformUsernames[p.key] || ''}
+                                onChange={(e) => setPlatformUsernames(prev => ({ ...prev, [p.key]: e.target.value }))}
+                                style={{ flex: 1, border: 'none', background: 'transparent', padding: '9px 12px', fontSize: 'var(--font-size-sm)', color: 'var(--text-primary)', outline: 'none' }}
+                              />
+                            </div>
+                            {verifiedPlatforms.has(p.key) ? (
+                              <>
+                                <button
+                                  onClick={() => { if (platformUsernames[p.key]) window.open(`${p.prefix}${platformUsernames[p.key]}`, '_blank') }}
+                                  style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: 'none', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, whiteSpace: 'nowrap' }}
+                                >
+                                  Verify
+                                </button>
+                                <span style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#2EC866', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '14px', color: '#fff' }}>✓</span>
+                              </>
+                            ) : (
+                              <button
+                                onClick={() => { if (platformUsernames[p.key]) { setVerifiedPlatforms(prev => new Set([...prev, p.key])); showToast(`${p.label} saved!`) } }}
+                                style={{ padding: '8px 16px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', cursor: 'pointer', fontSize: 'var(--font-size-sm)', fontWeight: 600, whiteSpace: 'nowrap' }}
+                              >Submit</button>
+                            )}
+                            <button
+                              onClick={() => { setPlatformUsernames(prev => ({ ...prev, [p.key]: '' })); setVerifiedPlatforms(prev => { const n = new Set(prev); n.delete(p.key); return n }) }}
+                              style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '18px', padding: '4px', flexShrink: 0, lineHeight: 1 }}
+                              title="Clear"
+                            >🗑</button>
+                          </div>
+                        )
+
+                        const devPlatforms = [
+                          { key: 'github', label: 'Github', icon: 'https://cdn.simpleicons.org/github/181717', prefix: 'https://github.com/' }
+                        ]
+                        const problemPlatforms = [
+                          { key: 'leetcode', label: 'LeetCode', icon: 'https://cdn.simpleicons.org/leetcode/FFA116', prefix: 'https://leetcode.com/u/' },
+                          { key: 'codestudio', label: 'CodeStudio', icon: 'https://cdn.simpleicons.org/codingninjas/E05D0E', prefix: 'https://www.naukri.com/code360/profile/' },
+                          { key: 'geeksforgeeks', label: 'GeeksForGeeks', icon: 'https://cdn.simpleicons.org/geeksforgeeks/2F8D46', prefix: 'https://www.geeksforgeeks.org/user/' },
+                          { key: 'interviewbit', label: 'InterviewBit', icon: 'https://cdn.simpleicons.org/interviewbit/4B92DB', prefix: 'https://www.interviewbit.com/profile/' },
+                          { key: 'codechef', label: 'CodeChef', icon: 'https://cdn.simpleicons.org/codechef/5B4638', prefix: 'https://www.codechef.com/users/' },
+                          { key: 'codeforces', label: 'CodeForces', icon: 'https://cdn.simpleicons.org/codeforces/1F8ACB', prefix: 'https://codeforces.com/profile/' },
+                          { key: 'hackerrank', label: 'HackerRank', icon: 'https://cdn.simpleicons.org/hackerrank/2EC866', prefix: 'https://www.hackerrank.com/profile/' },
+                          { key: 'atcoder', label: 'AtCoder', icon: 'https://cdn.simpleicons.org/atcoder/222222', prefix: 'https://atcoder.jp/users/' },
+                        ]
+
+                        return (
+                          <>
+                            <p style={{ margin: '0 0 14px', fontWeight: 700, fontSize: '0.95rem' }}>Development</p>
+                            {devPlatforms.map((p) => renderRow(p, true))}
+
+                            <p style={{ margin: '8px 0 14px', fontWeight: 700, fontSize: '0.95rem' }}>Problem Solving</p>
+                            {problemPlatforms.map((p, i) => renderRow(p, i < problemPlatforms.length - 1))}
+
+                            <div style={{ marginTop: '20px', padding: '10px 14px', background: 'rgba(255,165,0,0.08)', border: '1px solid rgba(255,165,0,0.25)', borderRadius: '8px', display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: 'var(--text-secondary)' }}>
+                              <span style={{ fontSize: '16px', flexShrink: 0 }}>ℹ️</span>
+                              <span>If you are getting this warning, please check the <a href="https://faq.example.com" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-primary)' }}>FAQ</a> to know why this happens and how to fix it.</span>
+                            </div>
+                          </>
+                        )
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

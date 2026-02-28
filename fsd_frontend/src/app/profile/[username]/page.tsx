@@ -1,9 +1,69 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Navbar } from '../../../components/Navbar'
 import { Sidebar } from '../../../components/Sidebar'
 import api from '../../../services/api'
 import type { User } from '../../../types/dashboard'
+
+const ICON_SIZE = 18
+
+const SOCIAL_ICONS: Record<string, ReactNode> = {
+  email: (
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M20 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 2-8 5-8-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M4 19h16a2 2 0 0 0 2-2V7"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+    </svg>
+  ),
+  linkedin: (
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M4.98 3.5A2.5 2.5 0 1 1 5 8.5a2.5 2.5 0 0 1-.02-5ZM3 9h4v12H3zM10 9h3.8v1.71h.05c.53-1 1.82-2 3.75-2 4 0 4.75 2.4 4.75 5.51V21H19v-6.13c0-1.46-.03-3.34-2.03-3.34-2.03 0-2.35 1.58-2.35 3.23V21h-3.8Z"
+        fill="currentColor"
+      />
+    </svg>
+  ),
+  twitter: (
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M18.244 2H21l-6.356 7.271L22 22h-6.778l-4.771-6.244L4.9 22H2.14l6.815-7.8L2 2h6.889l4.27 5.6z"
+        fill="currentColor"
+      />
+    </svg>
+  ),
+  website: (
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 2a12 12 0 0 1 3.5 8 12 12 0 0 1-3.5 8 12 12 0 0 1-3.5-8 12 12 0 0 1 3.5-8Zm-7.95 8a8 8 0 0 1 0-2h15.9a8 8 0 0 1 0 2Z"
+        fill="currentColor"
+      />
+    </svg>
+  ),
+  resume: (
+    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path
+        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Zm0 0v6h6M9 13h6M9 17h4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
 
 export default function ProfilePage() {
   const params = useParams<{ username?: string }>()
@@ -19,6 +79,57 @@ export default function ProfilePage() {
     setToast(msg)
     setTimeout(() => setToast(null), 2500)
   }
+
+  const handleVerificationClick = () => {
+    navigate('/settings?section=verification')
+  }
+
+  const openExternalLink = (url?: string) => {
+    if (!url) {
+      showToast('Add this link from Settings to activate it.')
+      return
+    }
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+
+  const socialActions = user ? [
+    {
+      label: 'Email',
+      icon: SOCIAL_ICONS.email,
+      color: 'var(--text-primary)',
+      onClick: () => {
+        if (!user.email) {
+          showToast('No email available yet.')
+          return
+        }
+        window.location.href = `mailto:${user.email}`
+      }
+    },
+    {
+      label: 'LinkedIn',
+      icon: SOCIAL_ICONS.linkedin,
+      color: '#0A66C2',
+      onClick: () => openExternalLink(user.links?.linkedIn)
+    },
+    {
+      label: 'X / Twitter',
+      icon: SOCIAL_ICONS.twitter,
+      color: '#000000',
+      onClick: () => openExternalLink(user.links?.twitter)
+    },
+    {
+      label: 'Website',
+      icon: SOCIAL_ICONS.website,
+      color: 'var(--accent-primary)',
+      onClick: () => openExternalLink(user.links?.website)
+    },
+    {
+      label: 'Resume',
+      icon: SOCIAL_ICONS.resume,
+      color: '#F97316',
+      onClick: () => openExternalLink(user.links?.resume)
+    }
+  ] : []
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -107,7 +218,7 @@ export default function ProfilePage() {
 
               {/* Get Badge Button */}
               <button
-                onClick={() => showToast('Verification request submitted! We\'ll review your profile shortly.')}
+                onClick={handleVerificationClick}
                 style={{
                   width: '100%',
                   marginTop: 'var(--space-lg)',
@@ -128,42 +239,73 @@ export default function ProfilePage() {
               </button>
 
               {/* Social Links */}
-              <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'center', marginTop: 'var(--space-lg)' }}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(5, 1fr)',
+                gap: 'var(--space-sm)',
+                marginTop: 'var(--space-lg)',
+                padding: 'var(--space-md)',
+                background: 'var(--bg-primary)',
+                borderRadius: 'var(--radius-xl)',
+                border: '1px solid var(--border-subtle)'
+              }}>
                 {[
-                  { icon: '✉️', label: 'Email' },
-                  { icon: '💼', label: 'LinkedIn' },
-                  { icon: '𝕏', label: 'X / Twitter' },
-                  { icon: '🌐', label: 'Website' },
-                  { icon: '📋', label: 'Resume' }
+                  {
+                    icon: <img src="https://cdn.simpleicons.org/linkedin/ffffff" alt="LinkedIn" width="20" height="20" style={{ display: 'block' }} />,
+                    label: 'LinkedIn', bg: '#0A66C2', action: () => openExternalLink(user.links?.linkedIn)
+                  },
+                  {
+                    icon: <img src="https://cdn.simpleicons.org/github/ffffff" alt="GitHub" width="20" height="20" style={{ display: 'block' }} />,
+                    label: 'GitHub', bg: '#24292e', action: () => openExternalLink(user.links?.github)
+                  },
+                  {
+                    icon: <img src="https://cdn.simpleicons.org/x/ffffff" alt="Twitter" width="20" height="20" style={{ display: 'block' }} />,
+                    label: 'Twitter', bg: '#000000', action: () => openExternalLink(user.links?.twitter)
+                  },
+                  {
+                    icon: (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                      </svg>
+                    ),
+                    label: 'Email', bg: '#2196F3', action: () => { window.location.href = `mailto:${user.email}` }
+                  },
+                  {
+                    icon: <img src="https://cdn.simpleicons.org/googlechrome/ffffff" alt="Website" width="20" height="20" style={{ display: 'block' }} />,
+                    label: 'Website', bg: '#4285F4', action: () => openExternalLink(user.links?.website)
+                  },
                 ].map((s, i) => (
-                  <button
-                    key={i}
-                    title={s.label}
-                    onClick={() => showToast(`${s.label} link not set yet. Edit your profile to add it.`)}
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '50%',
-                      background: 'rgba(14, 165, 233, 0.1)',
-                      border: '1px solid rgba(14, 165, 233, 0.3)',
-                      cursor: 'pointer',
-                      fontSize: '1.2em',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      transition: 'all 0.15s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = 'rgba(14,165,233,0.25)'
-                      e.currentTarget.style.transform = 'translateY(-2px)'
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'rgba(14,165,233,0.1)'
-                      e.currentTarget.style.transform = 'translateY(0)'
-                    }}
-                  >
-                    {s.icon}
-                  </button>
+                  <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                    <button
+                      title={s.label}
+                      onClick={s.action}
+                      style={{
+                        width: '44px',
+                        height: '44px',
+                        borderRadius: 'var(--radius-lg)',
+                        background: s.bg,
+                        border: 'none',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.18s',
+                        padding: '0',
+                        boxShadow: `0 2px 8px ${s.bg}66`
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = 'translateY(-3px)'
+                        e.currentTarget.style.boxShadow = `0 8px 20px ${s.bg}99`
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = 'translateY(0)'
+                        e.currentTarget.style.boxShadow = `0 2px 8px ${s.bg}66`
+                      }}
+                    >
+                      {s.icon}
+                    </button>
+                    <span style={{ fontSize: '10px', color: 'var(--text-tertiary)', whiteSpace: 'nowrap' }}>{s.label}</span>
+                  </div>
                 ))}
               </div>
             </div>
@@ -278,7 +420,7 @@ export default function ProfilePage() {
                 </p>
               </div>
               <button
-                onClick={() => showToast('Verification request submitted! Check your email for next steps.')}
+                onClick={handleVerificationClick}
                 style={{
                   padding: 'var(--space-md) var(--space-lg)',
                   background: '#000',

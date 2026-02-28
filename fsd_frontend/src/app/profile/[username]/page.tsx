@@ -50,7 +50,7 @@ export default function ProfilePage() {
       <>
         <Navbar />
         <Sidebar />
-        <main style={{ marginLeft: '250px', padding: 'var(--space-2xl)', textAlign: 'center' }}>
+        <main className="page-shell" style={{ marginLeft: '250px', padding: 'var(--space-2xl)', textAlign: 'center' }}>
           <p className="text-muted">Loading profile...</p>
         </main>
       </>
@@ -62,7 +62,7 @@ export default function ProfilePage() {
       <>
         <Navbar />
         <Sidebar />
-        <main style={{ marginLeft: '250px', padding: 'var(--space-2xl)', textAlign: 'center' }}>
+        <main className="page-shell" style={{ marginLeft: '250px', padding: 'var(--space-2xl)', textAlign: 'center' }}>
           <p className="text-muted">{error || 'User not found'}</p>
         </main>
       </>
@@ -73,7 +73,7 @@ export default function ProfilePage() {
     <>
       <Navbar />
       <Sidebar />
-      <main style={{ marginLeft: '250px', padding: 'var(--space-2xl)' }}>
+      <main className="page-shell" style={{ marginLeft: '250px', padding: 'var(--space-2xl)' }}>
         <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 'var(--space-2xl)' }}>
           
           {/* LEFT SIDEBAR - USER INFO */}

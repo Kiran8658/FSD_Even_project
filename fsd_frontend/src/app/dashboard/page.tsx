@@ -67,7 +67,7 @@ export default function DashboardPage() {
     <>
       <Navbar />
       <Sidebar />
-      <main style={{ marginLeft: '250px' }}>
+      <main className="page-shell" style={{ marginLeft: '250px' }}>
         <div className="container">
           {/* Header */}
           <div style={{ marginBottom: 'var(--space-2xl)' }}>

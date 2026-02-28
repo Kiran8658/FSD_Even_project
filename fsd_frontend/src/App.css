@@ -1,3 +1,37 @@
+/* ===== PAGE CHROME ===== */
+.page-shell {
+  position: relative;
+  min-height: calc(100vh - 70px);
+  background: transparent;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.page-shell::before {
+  content: '';
+  position: absolute;
+  inset: -15% 0 -5% 0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(14, 165, 233, 0.18) 0%, transparent 48%),
+    radial-gradient(circle at 82% 5%, rgba(2, 132, 199, 0.16) 0%, transparent 52%),
+    radial-gradient(circle at 50% 120%, rgba(14, 165, 233, 0.12) 0%, transparent 60%);
+  z-index: -2;
+  pointer-events: none;
+}
+
+.page-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(180deg, transparent 92%, rgba(14, 165, 233, 0.05)),
+    linear-gradient(90deg, transparent 92%, rgba(14, 165, 233, 0.05));
+  background-size: 140px 140px;
+  opacity: 0.5;
+  z-index: -1;
+  pointer-events: none;
+}
+
 /* ===== LAYOUT ===== */
 .container {
   max-width: 1280px;

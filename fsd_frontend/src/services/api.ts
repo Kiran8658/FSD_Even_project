@@ -89,8 +89,8 @@ export const api = {
   // ============ User Endpoints ============
   getUser: async (username: string): Promise<User> => {
     try {
-      const response = await axiosClient.get<User>(`/users/${username}`)
-      return response.data
+      const response = await axiosClient.get<{ success: boolean; data: User }>(`/users/${username}`)
+      return response.data.data
     } catch (error) {
       return handleError(error, mockUser)
     }
@@ -98,8 +98,8 @@ export const api = {
 
   getUserById: async (id: string): Promise<User> => {
     try {
-      const response = await axiosClient.get<User>(`/users/id/${id}`)
-      return response.data
+      const response = await axiosClient.get<{ success: boolean; data: User }>(`/users/id/${id}`)
+      return response.data.data
     } catch (error) {
       return handleError(error, mockUser)
     }
@@ -108,12 +108,13 @@ export const api = {
   // ============ Auth Endpoints ============
   signUp: async (email: string, password: string, username: string): Promise<{ user: User; token: string }> => {
     try {
-      const response = await axiosClient.post<{ user: User; token: string }>('/auth/signup', {
+      const response = await axiosClient.post<{ success: boolean; data: { user: User; token: string } }>('/auth/signup', {
+        name: username,
+        username,
         email,
-        password,
-        username
+        password
       })
-      return response.data
+      return response.data.data
     } catch (error) {
       if (ENABLE_MOCK_DATA) {
         console.log('Mock signup:', email)
@@ -134,11 +135,11 @@ export const api = {
 
   signIn: async (email: string, password: string): Promise<{ user: User; token: string }> => {
     try {
-      const response = await axiosClient.post<{ user: User; token: string }>('/auth/signin', {
+      const response = await axiosClient.post<{ success: boolean; data: { user: User; token: string } }>('/auth/signin', {
         email,
         password
       })
-      return response.data
+      return response.data.data
     } catch (error) {
       if (ENABLE_MOCK_DATA) {
         console.log('Mock signin:', email)
@@ -161,8 +162,8 @@ export const api = {
   // ============ Dashboard Endpoints ============
   getDashboardStats: async (): Promise<DashboardStats> => {
     try {
-      const response = await axiosClient.get<DashboardStats>('/dashboard/stats')
-      return response.data
+      const response = await axiosClient.get<{ success: boolean; data: DashboardStats }>('/dashboard/stats')
+      return response.data.data
     } catch (error) {
       return handleError(error, mockStats)
     }
@@ -171,8 +172,8 @@ export const api = {
   getActivityData: async (days?: number): Promise<ActivityData[]> => {
     try {
       const params = days ? { days } : {}
-      const response = await axiosClient.get<ActivityData[]>('/dashboard/activities', { params })
-      return response.data
+      const response = await axiosClient.get<{ success: boolean; data: ActivityData[] }>('/dashboard/activities', { params })
+      return response.data.data
     } catch (error) {
       return handleError(error, days ? mockActivityData.slice(-days) : mockActivityData)
     }
@@ -180,8 +181,8 @@ export const api = {
 
   getSkills: async (): Promise<Skill[]> => {
     try {
-      const response = await axiosClient.get<Skill[]>('/skills')
-      return response.data
+      const response = await axiosClient.get<{ success: boolean; data: Skill[] }>('/dashboard/skills')
+      return response.data.data
     } catch (error) {
       return handleError(error, mockSkills)
     }
@@ -189,8 +190,8 @@ export const api = {
 
   getInsights: async (): Promise<Insight[]> => {
     try {
-      const response = await axiosClient.get<Insight[]>('/dashboard/insights')
-      return response.data
+      const response = await axiosClient.get<{ success: boolean; data: Insight[] }>('/dashboard/insights')
+      return response.data.data
     } catch (error) {
       return handleError(error, mockInsights)
     }
@@ -199,7 +200,7 @@ export const api = {
   // ============ Activity Endpoints ============
   logActivity: async (activity: any): Promise<{ success: boolean; data: any }> => {
     try {
-      const response = await axiosClient.post('/activities/log', activity)
+      const response = await axiosClient.post('/dashboard/activities/log', activity)
       return response.data
     } catch (error) {
       throw error
@@ -209,7 +210,7 @@ export const api = {
   // ============ Skill Endpoints ============
   updateSkillLevel: async (skillId: string, level: number): Promise<{ success: boolean }> => {
     try {
-      const response = await axiosClient.put(`/skills/${skillId}`, { level })
+      const response = await axiosClient.put(`/dashboard/skills/${skillId}`, { level })
       return response.data
     } catch (error) {
       throw error

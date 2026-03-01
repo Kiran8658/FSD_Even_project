@@ -36,17 +36,20 @@ public class UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        if (updateRequest.getName() != null) {
-            user.setName(updateRequest.getName());
-        }
-        if (updateRequest.getBio() != null) {
-            user.setBio(updateRequest.getBio());
-        }
-        if (updateRequest.getAvatar() != null) {
-            user.setAvatar(updateRequest.getAvatar());
-        }
-        if (updateRequest.getCollege() != null) {
-            user.setCollege(updateRequest.getCollege());
+        if (updateRequest.getName() != null) user.setName(updateRequest.getName());
+        if (updateRequest.getBio() != null) user.setBio(updateRequest.getBio());
+        if (updateRequest.getAvatar() != null) user.setAvatar(updateRequest.getAvatar());
+        if (updateRequest.getCollege() != null) user.setCollege(updateRequest.getCollege());
+
+        if (updateRequest.getLinks() != null) {
+            UserDTO.Links l = updateRequest.getLinks();
+            if (l.getLinkedIn() != null) user.setLinkLinkedIn(l.getLinkedIn());
+            if (l.getGithub() != null) user.setLinkGithub(l.getGithub());
+            if (l.getTwitter() != null) user.setLinkTwitter(l.getTwitter());
+            if (l.getWebsite() != null) user.setLinkWebsite(l.getWebsite());
+            if (l.getResume() != null) user.setLinkResume(l.getResume());
+            if (l.getTelegram() != null) user.setLinkTelegram(l.getTelegram());
+            if (l.getLeetCode() != null) user.setLinkLeetCode(l.getLeetCode());
         }
         
         User updatedUser = userRepository.save(user);
@@ -54,6 +57,16 @@ public class UserService {
     }
 
     private UserDTO mapToUserDTO(User user) {
+        UserDTO.Links links = UserDTO.Links.builder()
+                .linkedIn(user.getLinkLinkedIn())
+                .github(user.getLinkGithub())
+                .twitter(user.getLinkTwitter())
+                .website(user.getLinkWebsite())
+                .resume(user.getLinkResume())
+                .telegram(user.getLinkTelegram())
+                .leetCode(user.getLinkLeetCode())
+                .build();
+
         return UserDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -65,6 +78,7 @@ public class UserService {
                 .joinDate(user.getJoinDate() != null 
                         ? user.getJoinDate().format(DateTimeFormatter.ISO_LOCAL_DATE) 
                         : null)
+                .links(links)
                 .build();
     }
 }

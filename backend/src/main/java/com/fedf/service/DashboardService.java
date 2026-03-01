@@ -229,4 +229,20 @@ public class DashboardService {
                         : null)
                 .build();
     }
+
+    @Transactional
+    public void updateSkillLevel(String email, String skillId, Integer level) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserSkill userSkill = userSkillRepository.findById(skillId)
+                .orElseThrow(() -> new RuntimeException("Skill not found"));
+
+        if (!userSkill.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        userSkill.setLevel(Math.max(0, Math.min(100, level)));
+        userSkillRepository.save(userSkill);
+    }
 }

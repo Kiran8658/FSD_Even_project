@@ -26,16 +26,23 @@ public class AuthService {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("Email already registered");
         }
-        
-        // Generate username from name
-        String username = request.getName().toLowerCase().replaceAll("\\s+", "_");
-        
+
+        // Use provided username, or generate from name if not given
+        String username = (request.getUsername() != null && !request.getUsername().isBlank())
+                ? request.getUsername().toLowerCase().replaceAll("\\s+", "_")
+                : request.getName().toLowerCase().replaceAll("\\s+", "_");
+
         // Ensure username is unique
         int counter = 0;
         String baseUsername = username;
         while (userRepository.existsByUsername(username)) {
             counter++;
             username = baseUsername + counter;
+        }
+
+        // Check if username is already taken (before adjustment)
+        if (counter > 0) {
+            // username was adjusted, that's fine
         }
         
         // Create new user
@@ -93,6 +100,16 @@ public class AuthService {
     }
 
     private UserDTO mapToUserDTO(User user) {
+        UserDTO.Links links = UserDTO.Links.builder()
+                .linkedIn(user.getLinkLinkedIn())
+                .github(user.getLinkGithub())
+                .twitter(user.getLinkTwitter())
+                .website(user.getLinkWebsite())
+                .resume(user.getLinkResume())
+                .telegram(user.getLinkTelegram())
+                .leetCode(user.getLinkLeetCode())
+                .build();
+
         return UserDTO.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -104,6 +121,7 @@ public class AuthService {
                 .joinDate(user.getJoinDate() != null 
                         ? user.getJoinDate().format(DateTimeFormatter.ISO_LOCAL_DATE) 
                         : null)
+                .links(links)
                 .build();
     }
 }

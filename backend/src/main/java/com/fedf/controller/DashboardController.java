@@ -73,4 +73,21 @@ public class DashboardController {
             return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
         }
     }
+
+    @PutMapping("/skills/{skillId}")
+    public ResponseEntity<ApiResponse<String>> updateSkillLevel(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable String skillId,
+            @RequestBody java.util.Map<String, Integer> body) {
+        try {
+            Integer level = body.get("level");
+            if (level == null) {
+                return ResponseEntity.badRequest().body(ApiResponse.error("level is required"));
+            }
+            dashboardService.updateSkillLevel(userDetails.getUsername(), skillId, level);
+            return ResponseEntity.ok(ApiResponse.success("Skill updated", null));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
+    }
 }

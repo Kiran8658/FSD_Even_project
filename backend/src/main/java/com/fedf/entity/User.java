@@ -35,7 +35,28 @@ public class User {
     private String bio;
     
     private String college;
-    
+
+    @Column(name = "link_linkedin")
+    private String linkLinkedIn;
+
+    @Column(name = "link_github")
+    private String linkGithub;
+
+    @Column(name = "link_twitter")
+    private String linkTwitter;
+
+    @Column(name = "link_website")
+    private String linkWebsite;
+
+    @Column(name = "link_resume")
+    private String linkResume;
+
+    @Column(name = "link_telegram")
+    private String linkTelegram;
+
+    @Column(name = "link_leetcode")
+    private String linkLeetCode;
+
     @Column(name = "join_date")
     private LocalDateTime joinDate;
     

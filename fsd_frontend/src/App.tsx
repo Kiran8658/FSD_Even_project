@@ -13,6 +13,11 @@ import SignInPage from './app/signin/page'
 import SignUpPage from './app/signup/page'
 import QuizPage from './app/quiz/page'
 import SettingsPage from './app/settings/page'
+import PlatformsSettingsPage from './app/settings/platforms/page'
+import BasicInfoPage from './app/settings/basic-info/page'
+import ProfileDetailsPage from './app/settings/profile-details/page'
+import VisibilityPage from './app/settings/visibility/page'
+import AccountsPage from './app/settings/accounts/page'
 import IdeasPage from './app/ideas/page'
 import ImpactAssessmentPage from './app/impact-assessment/page'
 import ImpactEffortPage from './app/impact-effort/page'
@@ -61,6 +66,46 @@ function App() {
               element={
                 <ProtectedRoute>
                   <SettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/platforms"
+              element={
+                <ProtectedRoute>
+                  <PlatformsSettingsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/basic-info"
+              element={
+                <ProtectedRoute>
+                  <BasicInfoPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/profile-details"
+              element={
+                <ProtectedRoute>
+                  <ProfileDetailsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/visibility"
+              element={
+                <ProtectedRoute>
+                  <VisibilityPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings/accounts"
+              element={
+                <ProtectedRoute>
+                  <AccountsPage />
                 </ProtectedRoute>
               }
             />

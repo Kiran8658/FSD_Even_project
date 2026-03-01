@@ -16,6 +16,9 @@ public class SignUpRequest {
     
     @NotBlank(message = "Name is required")
     private String name;
+
+    @NotBlank(message = "Username is required")
+    private String username;
     
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")

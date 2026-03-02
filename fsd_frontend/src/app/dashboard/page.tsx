@@ -19,17 +19,37 @@ export default function DashboardPage() {
   const [insights, setInsights] = useState<Insight[]>([])
   const [achievements, setAchievements] = useState<Achievement[]>(ACHIEVEMENTS)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadDashboard = async () => {
       setLoading(true)
+      setError(null)
+      
+      // Debug: Check if token exists
+      const token = localStorage.getItem('ghostwrite_token')
+      const user = localStorage.getItem('ghostwrite_user')
+      console.log('Dashboard loading - Token exists:', !!token, 'User exists:', !!user)
+      
+      if (!token || !user) {
+        console.error('No token or user found in localStorage')
+        setError('Not authenticated. Please sign in again.')
+        setLoading(false)
+        // Will be redirected by axios interceptor
+        return
+      }
+      
       try {
+        console.log('Fetching dashboard data...')
         const [statsData, activityData, skillsData, insightsData] = await Promise.all([
           api.getDashboardStats(),
           api.getActivityData(7),
           api.getSkills(),
           api.getInsights()
         ])
+        
+        console.log('Dashboard data loaded:', { statsData, activityData, skillsData, insightsData })
+        
         setStats(statsData)
         setActivities(activityData)
         setSkills(skillsData)
@@ -54,8 +74,10 @@ export default function DashboardPage() {
           }
         })
         setAchievements(unlockedAchievements)
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to load dashboard:', error)
+        const errorMsg = error.response?.data?.message || error.message || 'Failed to load dashboard data'
+        setError(errorMsg)
       }
       setLoading(false)
     }
@@ -74,6 +96,19 @@ export default function DashboardPage() {
             <h1>Welcome back! 👋</h1>
             <p className="text-muted">Track your learning progress and achievements</p>
           </div>
+          {/* Error Message */}
+          {error && (
+            <div style={{
+              padding: 'var(--space-lg)',
+              marginBottom: 'var(--space-xl)',
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: 'var(--radius-lg)',
+              color: '#ef4444'
+            }}>
+              <strong>Error:</strong> {error}
+            </div>
+          )}
 
           {/* Stats Cards with Loading Skeleton */}
           {loading ? (

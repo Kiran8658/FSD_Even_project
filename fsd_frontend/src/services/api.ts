@@ -2,7 +2,7 @@ import type { User, DashboardStats, ActivityData, Skill, Insight } from '../type
 import axiosClient from './axiosClient'
 
 // Keep mock data as fallback during development
-const ENABLE_MOCK_DATA = import.meta.env.MODE === 'development' && true // Set to true to test with mock data
+const ENABLE_MOCK_DATA = false // Set to true to test with mock data, false to use real backend
 
 const mockUser: User = {
   id: '1',

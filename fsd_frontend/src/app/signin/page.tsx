@@ -254,30 +254,50 @@ export default function SignInPage() {
           {/* Demo Login */}
           <button
             onClick={handleDemoLogin}
+            disabled={loading}
             style={{
               width: '100%',
               padding: 'var(--space-md)',
-              marginBottom: 'var(--space-lg)',
+              marginBottom: 'var(--space-sm)',
               background: 'rgba(14, 165, 233, 0.1)',
               border: '1px solid rgba(14, 165, 233, 0.3)',
               borderRadius: 'var(--radius-lg)',
               color: 'var(--accent-primary)',
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
               fontSize: 'var(--font-size-sm)',
-              transition: 'all var(--transition-fast)'
+              transition: 'all var(--transition-fast)',
+              opacity: loading ? 0.7 : 1
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(14, 165, 233, 0.2)'
-              e.currentTarget.style.borderColor = 'rgba(14, 165, 233, 0.5)'
+              if (!loading) {
+                e.currentTarget.style.background = 'rgba(14, 165, 233, 0.2)'
+                e.currentTarget.style.borderColor = 'rgba(14, 165, 233, 0.5)'
+              }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = 'rgba(14, 165, 233, 0.1)'
               e.currentTarget.style.borderColor = 'rgba(14, 165, 233, 0.3)'
             }}
           >
-            Try Demo Account
+            {loading ? 'Logging in...' : '🚀 Try Demo Account'}
           </button>
+
+          {/* Demo Credentials Info */}
+          <div style={{
+            marginBottom: 'var(--space-lg)',
+            padding: 'var(--space-sm)',
+            background: 'rgba(14, 165, 233, 0.05)',
+            border: '1px solid rgba(14, 165, 233, 0.15)',
+            borderRadius: 'var(--radius-md)',
+            fontSize: 'var(--font-size-xs)',
+            color: 'var(--text-secondary)',
+            textAlign: 'center'
+          }}>
+            <div style={{ marginBottom: '4px', fontWeight: 500 }}>Demo Credentials:</div>
+            <div>Email: demo@ghostwrite.io</div>
+            <div>Password: demo123</div>
+          </div>
 
           {/* Footer */}
           <div style={{

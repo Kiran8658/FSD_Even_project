@@ -8,6 +8,7 @@ export default function SignUpPage() {
   const { signUp } = useAuth()
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -27,8 +28,20 @@ export default function SignUpPage() {
 
     try {
       // Validate
-      if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      if (!formData.name || !formData.username || !formData.email || !formData.password || !formData.confirmPassword) {
         setError('Please fill in all fields')
+        setLoading(false)
+        return
+      }
+
+      if (!/^[a-zA-Z0-9_]+$/.test(formData.username)) {
+        setError('Username can only contain letters, numbers, and underscores')
+        setLoading(false)
+        return
+      }
+
+      if (formData.username.length < 3 || formData.username.length > 30) {
+        setError('Username must be between 3 and 30 characters')
         setLoading(false)
         return
       }
@@ -51,7 +64,7 @@ export default function SignUpPage() {
         return
       }
 
-      await signUp(formData.name, formData.email, formData.password)
+      await signUp(formData.name.trim(), formData.username.trim().toLowerCase(), formData.email.trim(), formData.password)
       // Success - redirect to dashboard
       navigate('/dashboard')
     } catch (err: any) {
@@ -151,6 +164,51 @@ export default function SignUpPage() {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="John Doe"
+                style={{
+                  width: '100%',
+                  padding: 'var(--space-md)',
+                  background: 'var(--bg-tertiary)',
+                  border: '1px solid var(--border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  color: 'var(--text-primary)',
+                  fontSize: 'var(--font-size-base)',
+                  fontFamily: 'var(--font-family-base)',
+                  boxSizing: 'border-box',
+                  transition: 'all var(--transition-fast)'
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)'
+                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(14, 165, 233, 0.1)'
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)'
+                  e.currentTarget.style.boxShadow = 'none'
+                }}
+              />
+            </div>
+
+            <div style={{ marginBottom: 'var(--space-lg)' }}>
+              <label style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                marginBottom: 'var(--space-sm)',
+                fontWeight: 500,
+                fontSize: 'var(--font-size-sm)',
+                color: 'var(--text-primary)'
+              }}>
+                <span>Username</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: 'var(--font-size-xs)' }}>letters, numbers & underscores</span>
+              </label>
+              <input
+                type="text"
+                name="username"
+                value={formData.username}
+                onChange={(event) => {
+                  const sanitized = event.target.value.replace(/\s+/g, '_')
+                    .replace(/[^a-zA-Z0-9_]/g, '')
+                  setFormData(prev => ({ ...prev, username: sanitized.toLowerCase() }))
+                }}
+                placeholder="ghostwrite_pro"
                 style={{
                   width: '100%',
                   padding: 'var(--space-md)',

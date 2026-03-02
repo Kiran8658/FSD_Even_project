@@ -3,8 +3,7 @@ import { Navbar } from '../../../components/Navbar'
 import { Sidebar } from '../../../components/Sidebar'
 import { SettingsSidebar } from '../../../components/SettingsSidebar'
 
-export default function VisibilityPage() {
-  const [settings, setSettings] = useState({
+const defaultSettings = {
     profilePublic: true,
     showEmail: false,
     showActivity: true,
@@ -12,6 +11,14 @@ export default function VisibilityPage() {
     showSkills: true,
     showAchievements: true,
     showPlatformStats: true,
+  }
+
+export default function VisibilityPage() {
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('fedf_visibility')
+      return saved ? JSON.parse(saved) : defaultSettings
+    } catch { return defaultSettings }
   })
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
@@ -64,7 +71,7 @@ export default function VisibilityPage() {
             </div>
 
             <button
-              onClick={() => showToast('Visibility settings saved!')}
+              onClick={() => { localStorage.setItem('fedf_visibility', JSON.stringify(settings)); showToast('Visibility settings saved!') }}
               style={{ marginTop: '24px', padding: '10px 28px', background: 'var(--accent-primary)', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}
               onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}

@@ -31,8 +31,9 @@ axiosClient.interceptors.request.use(
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    // If 401 (Unauthorized), token expired - redirect to login
-    if (error.response?.status === 401) {
+    // If 401 or 403 (Unauthorized/Forbidden), token expired or invalid - redirect to login
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      console.error('Authentication error:', error.response?.status, error.response?.data)
       localStorage.removeItem('ghostwrite_token')
       localStorage.removeItem('ghostwrite_user')
       window.location.href = '/signin'

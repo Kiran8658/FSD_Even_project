@@ -3,24 +3,43 @@ import { useAuth } from '../../../context/AuthContext'
 import { Navbar } from '../../../components/Navbar'
 import { Sidebar } from '../../../components/Sidebar'
 import { SettingsSidebar } from '../../../components/SettingsSidebar'
+import api from '../../../services/api'
 
 export default function ProfileDetailsPage() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const [form, setForm] = useState({
-    bio: '',
-    college: '',
-    degree: '',
-    graduationYear: '',
-    company: '',
-    jobTitle: '',
-    location: '',
-    website: '',
-    linkedin: (user as any)?.links?.linkedIn || '',
-    github: (user as any)?.links?.github || '',
-    twitter: (user as any)?.links?.twitter || '',
+    bio: (user as any)?.bio || '',
+    college: (user as any)?.college || '',
+    website: user?.links?.website || '',
+    linkedin: user?.links?.linkedIn || '',
+    github: user?.links?.github || '',
+    twitter: user?.links?.twitter || '',
   })
+  const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const updated = await api.updateProfile({
+        bio: form.bio,
+        college: form.college,
+        links: {
+          linkedIn: form.linkedin,
+          github: form.github,
+          twitter: form.twitter,
+          website: form.website,
+        }
+      })
+      updateUser(updated)
+      showToast('Profile details saved!')
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Failed to save')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const inputStyle = {
     width: '100%', padding: '10px 14px', borderRadius: '8px',
@@ -60,30 +79,6 @@ export default function ProfileDetailsPage() {
                 <label style={labelStyle}>College / University</label>
                 <input style={inputStyle} value={form.college} onChange={e => setForm(p => ({ ...p, college: e.target.value }))} placeholder="e.g. IIT Bombay" />
               </div>
-              <div>
-                <label style={labelStyle}>Degree</label>
-                <input style={inputStyle} value={form.degree} onChange={e => setForm(p => ({ ...p, degree: e.target.value }))} placeholder="e.g. B.Tech CSE" />
-              </div>
-              <div>
-                <label style={labelStyle}>Graduation Year</label>
-                <input style={inputStyle} value={form.graduationYear} onChange={e => setForm(p => ({ ...p, graduationYear: e.target.value }))} placeholder="e.g. 2026" />
-              </div>
-            </div>
-
-            <h4 style={{ margin: '0 0 14px', fontWeight: 700 }}>Work</h4>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-              <div>
-                <label style={labelStyle}>Company</label>
-                <input style={inputStyle} value={form.company} onChange={e => setForm(p => ({ ...p, company: e.target.value }))} placeholder="Current company" />
-              </div>
-              <div>
-                <label style={labelStyle}>Job Title</label>
-                <input style={inputStyle} value={form.jobTitle} onChange={e => setForm(p => ({ ...p, jobTitle: e.target.value }))} placeholder="e.g. Software Engineer" />
-              </div>
-              <div>
-                <label style={labelStyle}>Location</label>
-                <input style={inputStyle} value={form.location} onChange={e => setForm(p => ({ ...p, location: e.target.value }))} placeholder="City, Country" />
-              </div>
             </div>
 
             <h4 style={{ margin: '0 0 14px', fontWeight: 700 }}>Social Links</h4>
@@ -107,11 +102,12 @@ export default function ProfileDetailsPage() {
             </div>
 
             <button
-              onClick={() => showToast('Profile details saved!')}
-              style={{ padding: '10px 28px', background: 'var(--accent-primary)', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 'var(--font-size-sm)', transition: 'opacity 0.15s' }}
+              onClick={handleSave}
+              disabled={saving}
+              style={{ padding: '10px 28px', background: 'var(--accent-primary)', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 'var(--font-size-sm)', transition: 'opacity 0.15s', opacity: saving ? 0.6 : 1 }}
               onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-            >Save Changes</button>
+            >{saving ? 'Saving...' : 'Save Changes'}</button>
           </div>
         </div>
 

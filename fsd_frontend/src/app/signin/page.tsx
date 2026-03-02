@@ -6,7 +6,7 @@ import { Navbar } from '../../components/Navbar'
 export default function SignInPage() {
   const navigate = useNavigate()
   const { signIn } = useAuth()
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -17,23 +17,28 @@ export default function SignInPage() {
     setLoading(true)
 
     try {
-      if (!email || !password) {
+      console.log('=== SIGNIN ATTEMPT ===')
+      console.log('Identifier:', identifier)
+      
+      if (!identifier || !password) {
         setError('Please fill in all fields')
         setLoading(false)
         return
       }
 
-      if (!email.includes('@')) {
-        setError('Please enter a valid email')
-        setLoading(false)
-        return
-      }
-
-      await signIn(email, password)
+      console.log('Calling signIn...')
+      await signIn(identifier.trim(), password)
+      console.log('SignIn successful, navigating to dashboard')
+      
       // Success - redirect to dashboard
       navigate('/dashboard')
     } catch (err: any) {
-      const errorMsg = err.message || 'Sign in failed. Please try again.'
+      console.error('=== SIGNIN FAILED ===')
+      console.error('Error object:', err)
+      console.error('Error message:', err.message)
+      console.error('Error response:', err.response?.data)
+      
+      const errorMsg = err.response?.data?.message || err.message || 'Sign in failed. Please try again.'
       setError(errorMsg)
       setLoading(false)
     }
@@ -47,10 +52,14 @@ export default function SignInPage() {
     setLoading(true)
     setError('')
     try {
+      console.log('=== DEMO LOGIN ATTEMPT ===')
       await signIn('demo@ghostwrite.io', 'demo123')
+      console.log('Demo login successful, navigating to dashboard')
       navigate('/dashboard')
     } catch (err: any) {
-      const errorMsg = err.message || 'Demo login failed. Please try again.'
+      console.error('=== DEMO LOGIN FAILED ===')
+      console.error('Error:', err)
+      const errorMsg = err.response?.data?.message || err.message || 'Demo login failed. Please try again.'
       setError(errorMsg)
       setLoading(false)
     }
@@ -134,13 +143,13 @@ export default function SignInPage() {
                 fontSize: 'var(--font-size-sm)',
                 color: 'var(--text-primary)'
               }}>
-                Email Address
+                Email address or username
               </label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="demo@ghostwrite.io or demo_user"
                 style={{
                   width: '100%',
                   padding: 'var(--space-md)',
@@ -162,6 +171,13 @@ export default function SignInPage() {
                   e.currentTarget.style.boxShadow = 'none'
                 }}
               />
+              <p style={{
+                marginTop: 'var(--space-xs)',
+                fontSize: 'var(--font-size-xs)',
+                color: 'var(--text-muted)'
+              }}>
+                Tip: <strong>demo@ghostwrite.io</strong>, <strong>demo@gmail.com</strong> or username <strong>demo_user</strong> all work with password <strong>demo123</strong>.
+              </p>
             </div>
 
             <div style={{ marginBottom: 'var(--space-lg)' }}>

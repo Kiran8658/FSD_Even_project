@@ -4,15 +4,46 @@ import { useAuth } from '../../../context/AuthContext'
 import { Navbar } from '../../../components/Navbar'
 import { Sidebar } from '../../../components/Sidebar'
 import { SettingsSidebar } from '../../../components/SettingsSidebar'
+import api from '../../../services/api'
 
 export default function AccountsPage() {
   const navigate = useNavigate()
   const { user, signOut } = useAuth()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [passwords, setPasswords] = useState({ current: '', newPw: '', confirm: '' })
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
 
   const handleLogout = () => { signOut(); navigate('/') }
+
+  const handlePasswordChange = async () => {
+    if (!passwords.current || !passwords.newPw) { showToast('Please fill in all password fields.'); return }
+    if (passwords.newPw !== passwords.confirm) { showToast('New passwords do not match.'); return }
+    if (passwords.newPw.length < 6) { showToast('Password must be at least 6 characters.'); return }
+    setSaving(true)
+    try {
+      await api.changePassword(passwords.current, passwords.newPw)
+      setPasswords({ current: '', newPw: '', confirm: '' })
+      showToast('Password updated successfully!')
+    } catch (err: any) {
+      showToast(err?.response?.data?.message || 'Failed to update password.')
+    } finally { setSaving(false) }
+  }
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    try {
+      await api.deleteAccount()
+      signOut()
+      navigate('/')
+    } catch {
+      showToast('Failed to delete account.')
+      setDeleting(false)
+      setShowDeleteConfirm(false)
+    }
+  }
 
   return (
     <>
@@ -46,20 +77,23 @@ export default function AccountsPage() {
             {/* Change Password */}
             <div className="card" style={{ padding: '20px', marginBottom: '20px' }}>
               <h4 style={{ margin: '0 0 16px', fontWeight: 700 }}>Change Password</h4>
-              {['Current Password', 'New Password', 'Confirm New Password'].map(label => (
-                <div key={label} style={{ marginBottom: '14px' }}>
+              {([['Current Password', 'current'], ['New Password', 'newPw'], ['Confirm New Password', 'confirm']] as const).map(([label, key]) => (
+                <div key={key} style={{ marginBottom: '14px' }}>
                   <label style={{ fontSize: 'var(--font-size-sm)', fontWeight: 500, color: 'var(--text-secondary)', marginBottom: '6px', display: 'block' }}>{label}</label>
                   <input
                     type="password"
                     placeholder="••••••••"
+                    value={passwords[key]}
+                    onChange={e => setPasswords(p => ({ ...p, [key]: e.target.value }))}
                     style={{ width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-subtle)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', fontSize: 'var(--font-size-sm)', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
               ))}
               <button
-                onClick={() => showToast('Password updated!')}
-                style={{ padding: '9px 22px', background: 'var(--accent-primary)', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}
-              >Update Password</button>
+                onClick={handlePasswordChange}
+                disabled={saving}
+                style={{ padding: '9px 22px', background: 'var(--accent-primary)', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 'var(--font-size-sm)', opacity: saving ? 0.6 : 1 }}
+              >{saving ? 'Updating...' : 'Update Password'}</button>
             </div>
 
             {/* Danger Zone */}
@@ -82,7 +116,7 @@ export default function AccountsPage() {
                 <div style={{ marginTop: '16px', padding: '14px', background: 'rgba(255,68,68,0.08)', borderRadius: '8px', border: '1px solid rgba(255,68,68,0.3)' }}>
                   <p style={{ margin: '0 0 12px', fontSize: 'var(--font-size-sm)', color: 'var(--text-secondary)' }}>Are you sure? This action cannot be undone.</p>
                   <div style={{ display: 'flex', gap: '10px' }}>
-                    <button onClick={() => { showToast('Account deletion is not available yet.'); setShowDeleteConfirm(false) }} style={{ padding: '8px 18px', background: '#ff4444', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>Yes, Delete</button>
+                    <button onClick={handleDeleteAccount} disabled={deleting} style={{ padding: '8px 18px', background: '#ff4444', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 'var(--font-size-sm)', opacity: deleting ? 0.6 : 1 }}>{deleting ? 'Deleting...' : 'Yes, Delete'}</button>
                     <button onClick={() => setShowDeleteConfirm(false)} style={{ padding: '8px 18px', background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', borderRadius: '8px', color: 'var(--text-primary)', fontWeight: 600, cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}>Cancel</button>
                   </div>
                 </div>

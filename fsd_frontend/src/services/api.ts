@@ -1,4 +1,5 @@
 import type { User, DashboardStats, ActivityData, Skill, Insight } from '../types/dashboard'
+import type { CompanyKitResponse } from '../types/quiz'
 import axiosClient from './axiosClient'
 
 // Keep mock data as fallback during development
@@ -76,6 +77,69 @@ const mockInsights: Insight[] = [
   }
 ]
 
+const mockCompanyKits: CompanyKitResponse = {
+  username: 'devpulse_user',
+  lastSynced: '2024-01-16T09:00:00Z',
+  recommendedCompanies: ['Amazon', 'Microsoft', 'Uber'],
+  kits: [
+    {
+      id: 'amazon-sde',
+      company: 'Amazon',
+      focusArea: 'Data Structures & LP',
+      difficulty: 'Medium',
+      questionCount: 45,
+      completionRate: 72,
+      status: 'Ready',
+      lastUpdated: 'Jan 15',
+      tags: ['Arrays', 'Graphs', 'Leadership']
+    },
+    {
+      id: 'microsoft-swe',
+      company: 'Microsoft',
+      focusArea: 'System Design Warmups',
+      difficulty: 'Medium',
+      questionCount: 30,
+      completionRate: 64,
+      status: 'Ready',
+      lastUpdated: 'Jan 14',
+      tags: ['Design', 'APIs', 'Scalability']
+    },
+    {
+      id: 'google-advanced',
+      company: 'Google',
+      focusArea: 'Algorithmic Patterns',
+      difficulty: 'Hard',
+      questionCount: 50,
+      completionRate: 51,
+      status: 'In Progress',
+      lastUpdated: 'Jan 13',
+      tags: ['DP', 'Greedy', 'Graphs']
+    },
+    {
+      id: 'meta-ml',
+      company: 'Meta',
+      focusArea: 'ML Fundamentals',
+      difficulty: 'Medium',
+      questionCount: 28,
+      completionRate: 57,
+      status: 'Ready',
+      lastUpdated: 'Jan 12',
+      tags: ['ML', 'Product', 'Math']
+    },
+    {
+      id: 'uber-analytics',
+      company: 'Uber',
+      focusArea: 'SQL & Experimentation',
+      difficulty: 'Easy',
+      questionCount: 24,
+      completionRate: 83,
+      status: 'Ready',
+      lastUpdated: 'Jan 12',
+      tags: ['SQL', 'Case Study', 'Metrics']
+    }
+  ]
+}
+
 // Helper function for error handling
 const handleError = (error: any, fallbackData?: any) => {
   if (ENABLE_MOCK_DATA && fallbackData) {
@@ -106,10 +170,10 @@ export const api = {
   },
 
   // ============ Auth Endpoints ============
-  signUp: async (email: string, password: string, username: string): Promise<{ user: User; token: string }> => {
+  signUp: async (name: string, username: string, email: string, password: string): Promise<{ user: User; token: string }> => {
     try {
       const response = await axiosClient.post<{ success: boolean; data: { user: User; token: string } }>('/auth/signup', {
-        name: username,
+        name,
         username,
         email,
         password
@@ -123,6 +187,7 @@ export const api = {
           username: username,
           email: email,
           avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+          name,
           bio: 'New learner!',
           joinDate: new Date().toISOString()
         }
@@ -133,22 +198,29 @@ export const api = {
     }
   },
 
-  signIn: async (email: string, password: string): Promise<{ user: User; token: string }> => {
+  signIn: async (identifier: string, password: string): Promise<{ user: User; token: string }> => {
     try {
+      console.log('[API] Sending signin request for:', identifier)
       const response = await axiosClient.post<{ success: boolean; data: { user: User; token: string } }>('/auth/signin', {
-        email,
+        identifier,
         password
       })
+      console.log('[API] Signin response received:', {
+        success: response.data.success,
+        hasToken: !!response.data.data?.token,
+        hasUser: !!response.data.data?.user
+      })
       return response.data.data
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[API] Signin error:', error.response?.data || error.message)
       if (ENABLE_MOCK_DATA) {
-        console.log('Mock signin:', email)
+        console.log('Mock signin:', identifier)
         // Allow any login in mock mode
         const mockUser: User = {
           id: Math.random().toString(36).substr(2, 9),
-          username: email.split('@')[0],
-          email: email,
-          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+          username: identifier.includes('@') ? identifier.split('@')[0] : identifier,
+          email: identifier.includes('@') ? identifier : `${identifier}@ghostwrite.dev`,
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${identifier}`,
           bio: 'Passionate learner',
           joinDate: new Date().toISOString()
         }
@@ -197,6 +269,16 @@ export const api = {
     }
   },
 
+  // ============ Quiz Endpoints ============
+  getCompanyKits: async (): Promise<CompanyKitResponse> => {
+    try {
+      const response = await axiosClient.get<{ success: boolean; data: CompanyKitResponse }>('/quiz/kits')
+      return response.data.data
+    } catch (error) {
+      return handleError(error, mockCompanyKits)
+    }
+  },
+
   // ============ Activity Endpoints ============
   logActivity: async (activity: any): Promise<{ success: boolean; data: any }> => {
     try {
@@ -215,6 +297,24 @@ export const api = {
     } catch (error) {
       throw error
     }
+  },
+
+  // ============ User Profile Endpoints ============
+  updateProfile: async (data: Partial<User>): Promise<User> => {
+    try {
+      const response = await axiosClient.put<{ success: boolean; data: User }>('/users/me', data)
+      return response.data.data
+    } catch (error) {
+      throw error
+    }
+  },
+
+  changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
+    await axiosClient.put('/users/me/password', { currentPassword, newPassword })
+  },
+
+  deleteAccount: async (): Promise<void> => {
+    await axiosClient.delete('/users/me')
   }
 }
 

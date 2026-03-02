@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../../../context/AuthContext'
 import { Navbar } from '../../../components/Navbar'
 import { Sidebar } from '../../../components/Sidebar'
 import { SettingsSidebar } from '../../../components/SettingsSidebar'
+import api from '../../../services/api'
 
 const devPlatforms = [
   { key: 'github', label: 'Github', icon: 'https://cdn.simpleicons.org/github/181717', prefix: 'https://github.com/' },
@@ -19,6 +21,7 @@ const problemPlatforms = [
 ]
 
 export default function PlatformsSettingsPage() {
+  const { user, updateUser } = useAuth()
 
   const [usernames, setUsernames] = useState<Record<string, string>>({
     github: '', leetcode: '', codestudio: '', geeksforgeeks: '',
@@ -27,16 +30,50 @@ export default function PlatformsSettingsPage() {
   const [verified, setVerified] = useState<Set<string>>(new Set())
   const [toast, setToast] = useState<string | null>(null)
 
+  // Seed from user profile links on mount
+  useEffect(() => {
+    if (user?.links) {
+      const extractUsername = (url?: string, prefix?: string) => {
+        if (!url || !prefix) return ''
+        return url.startsWith(prefix) ? url.slice(prefix.length).replace(/\/$/, '') : url
+      }
+      const gh = extractUsername(user.links.github, 'https://github.com/')
+      const lc = extractUsername(user.links.leetCode, 'https://leetcode.com/u/')
+      const init: Record<string, string> = { ...usernames }
+      if (gh) { init.github = gh }
+      if (lc) { init.leetcode = lc }
+      setUsernames(init)
+      const v = new Set<string>()
+      if (gh) v.add('github')
+      if (lc) v.add('leetcode')
+      setVerified(v)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const showToast = (msg: string) => {
     setToast(msg)
     setTimeout(() => setToast(null), 2500)
   }
 
-  const handleSubmit = (key: string, label: string) => {
-    if (usernames[key]) {
-      setVerified(prev => new Set([...prev, key]))
-      showToast(`${label} saved!`)
+  const handleSubmit = async (key: string, label: string) => {
+    if (!usernames[key]) return
+    // Persist github & leetcode to backend
+    if (key === 'github' || key === 'leetcode') {
+      const prefix = key === 'github' ? 'https://github.com/' : 'https://leetcode.com/u/'
+      const linkField = key === 'github' ? 'github' : 'leetCode'
+      try {
+        const updated = await api.updateProfile({
+          links: { ...user?.links, [linkField]: `${prefix}${usernames[key]}` }
+        })
+        updateUser(updated)
+      } catch {
+        showToast(`Failed to save ${label}.`)
+        return
+      }
     }
+    setVerified(prev => new Set([...prev, key]))
+    showToast(`${label} saved!`)
   }
 
   const handleClear = (key: string) => {

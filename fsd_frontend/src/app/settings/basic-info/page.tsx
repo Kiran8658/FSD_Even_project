@@ -3,22 +3,36 @@ import { useAuth } from '../../../context/AuthContext'
 import { Navbar } from '../../../components/Navbar'
 import { Sidebar } from '../../../components/Sidebar'
 import { SettingsSidebar } from '../../../components/SettingsSidebar'
+import api from '../../../services/api'
 
 export default function BasicInfoPage() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const [form, setForm] = useState({
     name: user?.name || '',
     username: user?.username || '',
     email: user?.email || '',
-    phone: '',
-    dob: '',
-    gender: '',
+    college: (user as any)?.college || '',
   })
+  const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
 
-  const handleSave = () => showToast('Basic info saved!')
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const updated = await api.updateProfile({
+        name: form.name,
+        college: form.college,
+      })
+      updateUser(updated)
+      showToast('Basic info saved!')
+    } catch (err: any) {
+      showToast(err.response?.data?.message || 'Failed to save')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   const inputStyle = {
     width: '100%', padding: '10px 14px', borderRadius: '8px',
@@ -47,33 +61,21 @@ export default function BasicInfoPage() {
               </div>
               <div>
                 <label style={labelStyle}>Username</label>
-                <input style={inputStyle} value={form.username} onChange={e => setForm(p => ({ ...p, username: e.target.value }))} placeholder="@username" />
+                <input style={inputStyle} value={form.username} disabled placeholder="@username" />
               </div>
               <div>
                 <label style={labelStyle}>Email</label>
-                <input style={inputStyle} value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="you@example.com" type="email" />
+                <input style={inputStyle} value={form.email} disabled placeholder="you@example.com" type="email" />
               </div>
               <div>
-                <label style={labelStyle}>Phone</label>
-                <input style={inputStyle} value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+91 00000 00000" />
-              </div>
-              <div>
-                <label style={labelStyle}>Date of Birth</label>
-                <input style={inputStyle} value={form.dob} onChange={e => setForm(p => ({ ...p, dob: e.target.value }))} type="date" />
-              </div>
-              <div>
-                <label style={labelStyle}>Gender</label>
-                <select style={{ ...inputStyle }} value={form.gender} onChange={e => setForm(p => ({ ...p, gender: e.target.value }))}>
-                  <option value="">Prefer not to say</option>
-                  <option value="male">Male</option>
-                  <option value="female">Female</option>
-                  <option value="other">Other</option>
-                </select>
+                <label style={labelStyle}>College / University</label>
+                <input style={inputStyle} value={form.college} onChange={e => setForm(p => ({ ...p, college: e.target.value }))} placeholder="e.g. KLH University" />
               </div>
             </div>
 
             <button
               onClick={handleSave}
+              disabled={saving}
               style={{
                 padding: '10px 28px', background: 'var(--accent-primary)', border: 'none',
                 borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer',

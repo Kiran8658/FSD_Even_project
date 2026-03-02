@@ -5,6 +5,7 @@ export interface User {
   name?: string
   avatar?: string
   bio?: string
+  college?: string
   joinDate: string
   links?: {
     linkedIn?: string

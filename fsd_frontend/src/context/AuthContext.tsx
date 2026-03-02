@@ -1,25 +1,17 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
 import { api } from '../services/api'
-
-interface User {
-  id: string
-  name?: string
-  email: string
-  username: string
-  avatar?: string
-  bio?: string
-  joinDate?: string
-}
+import type { User } from '../types/dashboard'
 
 interface AuthContextType {
   user: User | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
-  signUp: (username: string, email: string, password: string) => Promise<void>
-  signIn: (email: string, password: string) => Promise<void>
+  signUp: (name: string, username: string, email: string, password: string) => Promise<void>
+  signIn: (identifier: string, password: string) => Promise<void>
   signOut: () => void
   clearError: () => void
+  updateUser: (data: Partial<User>) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -45,12 +37,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  const signUp = async (username: string, email: string, password: string) => {
+  const signUp = async (name: string, username: string, email: string, password: string) => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const response = await api.signUp(email, password, username)
+      const response = await api.signUp(name, username, email, password)
       
       // Store user and JWT token
       localStorage.setItem('ghostwrite_user', JSON.stringify(response.user))
@@ -66,19 +58,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (identifier: string, password: string) => {
     setIsLoading(true)
     setError(null)
 
     try {
-      const response = await api.signIn(email, password)
+      console.log('Signing in...', identifier)
+      const response = await api.signIn(identifier, password)
+      
+      console.log('Sign in response:', { 
+        hasUser: !!response.user, 
+        hasToken: !!response.token,
+        tokenPreview: response.token?.substring(0, 20) + '...'
+      })
       
       // Store user and JWT token
       localStorage.setItem('ghostwrite_user', JSON.stringify(response.user))
       localStorage.setItem('ghostwrite_token', response.token)
       
+      console.log('Stored in localStorage:', {
+        user: !!localStorage.getItem('ghostwrite_user'),
+        token: !!localStorage.getItem('ghostwrite_token')
+      })
+      
       setUser(response.user)
     } catch (err: any) {
+      console.error('Sign in error:', err)
       const errorMessage = err.response?.data?.message || err.message || 'Sign in failed'
       setError(errorMessage)
       throw new Error(errorMessage)
@@ -98,6 +103,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
   }
 
+  const updateUser = (data: Partial<User>) => {
+    if (user) {
+      const updated = { ...user, ...data }
+      setUser(updated)
+      localStorage.setItem('ghostwrite_user', JSON.stringify(updated))
+    }
+  }
+
   return (
     <AuthContext.Provider 
       value={{ 
@@ -108,7 +121,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp, 
         signIn, 
         signOut,
-        clearError
+        clearError,
+        updateUser
       }}
     >
       {!isLoading && children}

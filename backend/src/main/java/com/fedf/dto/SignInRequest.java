@@ -1,6 +1,6 @@
 package com.fedf.dto;
 
-import jakarta.validation.constraints.Email;
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SignInRequest {
     
-    @NotBlank(message = "Email is required")
-    @Email(message = "Invalid email format")
-    private String email;
+    @JsonAlias({"email", "username"})
+    @NotBlank(message = "Email or username is required")
+    private String identifier;
     
     @NotBlank(message = "Password is required")
     private String password;

@@ -5,8 +5,7 @@ import com.fedf.entity.User;
 import com.fedf.repository.UserRepository;
 import com.fedf.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -19,7 +18,6 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final AuthenticationManager authenticationManager;
 
     public AuthResponse signUp(SignUpRequest request) {
         // Check if email already exists
@@ -71,21 +69,17 @@ public class AuthService {
     }
 
     public AuthResponse signIn(SignInRequest request) {
-        // Authenticate user
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-        
-        // Get user
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
+        User user = resolveUserByIdentifier(request.getIdentifier());
+
+        // Manual password verification to support alias/email/username logins
+        boolean passwordMatches = passwordEncoder.matches(request.getPassword(), user.getPassword());
+        if (!passwordMatches) {
+            throw new BadCredentialsException("Invalid email or password");
+        }
+
         // Generate JWT token
         String token = jwtTokenProvider.generateToken(user.getEmail());
-        
+
         return AuthResponse.builder()
                 .token(token)
                 .tokenType("Bearer")
@@ -123,5 +117,26 @@ public class AuthService {
                         : null)
                 .links(links)
                 .build();
+    }
+
+    private User resolveUserByIdentifier(String identifier) {
+        if (identifier == null || identifier.isBlank()) {
+            throw new RuntimeException("Email or username is required");
+        }
+
+        String trimmed = identifier.trim();
+        String normalizedEmail = normalizeEmailAlias(trimmed);
+
+        return userRepository.findByEmail(normalizedEmail)
+                .orElseGet(() -> userRepository.findByUsername(trimmed.toLowerCase())
+                        .orElseThrow(() -> new RuntimeException("User not found")));
+    }
+
+    private String normalizeEmailAlias(String identifier) {
+        String lowered = identifier.toLowerCase();
+        if ("demo@gmail.com".equals(lowered)) {
+            return "demo@ghostwrite.io";
+        }
+        return identifier;
     }
 }

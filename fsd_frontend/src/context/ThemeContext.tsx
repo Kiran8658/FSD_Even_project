@@ -11,12 +11,20 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('fedf_theme')
-    return (saved as Theme) || 'dark'
+    try {
+      const saved = localStorage.getItem('fedf_theme')
+      return saved === 'light' || saved === 'dark' ? saved : 'dark'
+    } catch {
+      return 'dark'
+    }
   })
 
   useEffect(() => {
-    localStorage.setItem('fedf_theme', theme)
+    try {
+      localStorage.setItem('fedf_theme', theme)
+    } catch {
+      // ignore storage errors (private mode / blocked storage)
+    }
     
     // Update CSS variables based on theme
     const root = document.documentElement

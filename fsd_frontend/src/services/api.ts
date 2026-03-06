@@ -1,6 +1,16 @@
-import type { User, DashboardStats, ActivityData, Skill, Insight } from '../types/dashboard'
-import type { CompanyKitResponse } from '../types/quiz'
+import type { User, DashboardStats, ActivityData, Skill, Insight, PlatformStatsSummary } from '../types/dashboard'
+import type { CompanyKitResponse, CompanyProfile } from '../types/quiz'
+import type { PlatformLeaderboardEntry, PlatformLeaderboardMetric } from '../types/leaderboard'
 import axiosClient from './axiosClient'
+
+export type NoteRecord = {
+  id: number
+  title: string
+  content?: string
+  color?: string
+  createdAt?: string
+  updatedAt?: string
+}
 
 // Keep mock data as fallback during development
 const ENABLE_MOCK_DATA = false // Set to true to test with mock data, false to use real backend
@@ -169,6 +179,23 @@ export const api = {
     }
   },
 
+  // ============ Platform Stats (Public) ============
+  getPlatformStats: async (username: string): Promise<PlatformStatsSummary> => {
+    const response = await axiosClient.get<{ success: boolean; data: PlatformStatsSummary }>(`/public/platform-stats/${username}`)
+    return response.data.data
+  },
+
+  getPlatformLeaderboard: async (
+    metric: PlatformLeaderboardMetric,
+    limit: number = 20,
+    includeUser?: string
+  ): Promise<PlatformLeaderboardEntry[]> => {
+    const params: Record<string, any> = { metric, limit }
+    if (includeUser) params.includeUser = includeUser
+    const response = await axiosClient.get<{ success: boolean; data: PlatformLeaderboardEntry[] }>('/public/platform-leaderboard', { params })
+    return response.data.data
+  },
+
   // ============ Auth Endpoints ============
   signUp: async (name: string, username: string, email: string, password: string): Promise<{ user: User; token: string }> => {
     try {
@@ -279,6 +306,11 @@ export const api = {
     }
   },
 
+  getCompanyProfile: async (company: string): Promise<CompanyProfile> => {
+    const response = await axiosClient.get<{ success: boolean; data: CompanyProfile }>(`/quiz/company/${encodeURIComponent(company)}`)
+    return response.data.data
+  },
+
   // ============ Activity Endpoints ============
   logActivity: async (activity: any): Promise<{ success: boolean; data: any }> => {
     try {
@@ -315,6 +347,26 @@ export const api = {
 
   deleteAccount: async (): Promise<void> => {
     await axiosClient.delete('/users/me')
+  },
+
+  // ============ Notes Endpoints ============
+  getNotes: async (): Promise<NoteRecord[]> => {
+    const response = await axiosClient.get<{ success: boolean; data: NoteRecord[] }>('/notes')
+    return response.data.data
+  },
+
+  createNote: async (payload: { title: string; content?: string; color?: string }): Promise<NoteRecord> => {
+    const response = await axiosClient.post<{ success: boolean; data: NoteRecord }>('/notes', payload)
+    return response.data.data
+  },
+
+  updateNote: async (id: number, payload: { title: string; content?: string; color?: string }): Promise<NoteRecord> => {
+    const response = await axiosClient.put<{ success: boolean; data: NoteRecord }>(`/notes/${id}`, payload)
+    return response.data.data
+  },
+
+  deleteNote: async (id: number): Promise<void> => {
+    await axiosClient.delete(`/notes/${id}`)
   }
 }
 

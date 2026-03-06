@@ -10,24 +10,41 @@ export default function SignInPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [toast, setToast] = useState<string | null>(null)
 
-  const handleSignIn = async (e: React.FormEvent) => {
+  const showToast = (message: string) => {
+    setToast(message)
+    window.setTimeout(() => setToast(null), 2500)
+  }
+
+  const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
     try {
+      const formData = new FormData(e.currentTarget)
+      const identifierValue = String(formData.get('identifier') ?? '')
+      const passwordValue = String(formData.get('password') ?? '')
+      const trimmedIdentifier = identifierValue.trim()
+
+      // Keep state in sync (especially when browser autofill is used)
+      if (identifier !== identifierValue) setIdentifier(identifierValue)
+      if (password !== passwordValue) setPassword(passwordValue)
+
       console.log('=== SIGNIN ATTEMPT ===')
-      console.log('Identifier:', identifier)
+      console.log('Identifier:', trimmedIdentifier)
       
-      if (!identifier || !password) {
-        setError('Please fill in all fields')
+      if (!trimmedIdentifier || !passwordValue) {
+        const msg = 'Please fill in all fields'
+        setError(msg)
+        showToast(msg)
         setLoading(false)
         return
       }
 
       console.log('Calling signIn...')
-      await signIn(identifier.trim(), password)
+      await signIn(trimmedIdentifier, passwordValue)
       console.log('SignIn successful, navigating to dashboard')
       
       // Success - redirect to dashboard
@@ -40,6 +57,7 @@ export default function SignInPage() {
       
       const errorMsg = err.response?.data?.message || err.message || 'Sign in failed. Please try again.'
       setError(errorMsg)
+      showToast(errorMsg)
       setLoading(false)
     }
   }
@@ -61,6 +79,7 @@ export default function SignInPage() {
       console.error('Error:', err)
       const errorMsg = err.response?.data?.message || err.message || 'Demo login failed. Please try again.'
       setError(errorMsg)
+      showToast(errorMsg)
       setLoading(false)
     }
   }
@@ -147,6 +166,7 @@ export default function SignInPage() {
               </label>
               <input
                 type="text"
+                name="identifier"
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
                 placeholder="demo@ghostwrite.io or demo_user"
@@ -205,6 +225,7 @@ export default function SignInPage() {
               </div>
               <input
                 type="password"
+                name="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -344,6 +365,29 @@ export default function SignInPage() {
           </div>
         </div>
       </main>
+
+      {toast && (
+        <div style={{
+          position: 'fixed',
+          bottom: '32px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'var(--bg-secondary)',
+          color: 'var(--accent-danger)',
+          padding: '12px 18px',
+          borderRadius: 'var(--radius-lg)',
+          border: '1px solid var(--border-subtle)',
+          borderLeft: '4px solid var(--accent-danger)',
+          boxShadow: 'var(--shadow-md)',
+          zIndex: 9999,
+          maxWidth: 'min(520px, calc(100vw - 32px))',
+          fontSize: 'var(--font-size-sm)',
+          fontWeight: 600,
+          textAlign: 'center'
+        }}>
+          {toast}
+        </div>
+      )}
 
       <style>{`
         input::placeholder {

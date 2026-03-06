@@ -36,6 +36,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final RateLimitingFilter rateLimitingFilter;
 
     @Value("${cors.allowed-origins}")
     private String allowedOrigins;
@@ -43,6 +44,8 @@ public class SecurityConfig {
     private static final List<String> DEFAULT_ALLOWED_ORIGINS = List.of(
             "http://localhost:5173",
             "http://127.0.0.1:5173",
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
             "http://localhost:4173",
             "http://127.0.0.1:4173",
             "http://localhost:3000",
@@ -57,6 +60,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/",
+                    "/ws/**",
                     "/api/auth/**",
                     "/api/public/**",
                     "/h2-console/**",
@@ -71,6 +75,7 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authenticationProvider(authenticationProvider())
+            .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())); // For H2 Console
         
@@ -113,7 +118,6 @@ public class SecurityConfig {
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -137,6 +141,11 @@ public class SecurityConfig {
         patterns.addAll(origins);
         patterns.add("http://localhost:*");
         patterns.add("http://127.0.0.1:*");
+        // Common LAN dev hosts when Vite runs with --host (e.g. http://10.0.1.224:5174)
+        patterns.add("http://10.*.*.*:*");
+        patterns.add("http://192.168.*.*:*");
+        patterns.add("http://172.*.*.*:*");
+        patterns.add("http://*.local:*");
         patterns.add("https://localhost:*");
         patterns.add("https://127.0.0.1:*");
         return new ArrayList<>(patterns);

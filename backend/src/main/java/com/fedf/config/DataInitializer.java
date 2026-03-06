@@ -24,6 +24,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ActivityRepository activityRepository;
     private final UserSkillRepository userSkillRepository;
     private final InsightRepository insightRepository;
+    private final UserScoreRepository userScoreRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -78,6 +79,13 @@ public class DataInitializer implements CommandLineRunner {
 
         User savedUser = userRepository.save(demoUser);
         log.info("Created demo user: {}", savedUser.getEmail());
+
+        userScoreRepository.save(UserScore.builder()
+            .user(savedUser)
+            .totalSolved(0)
+            .githubScore(0)
+            .quizScore(0)
+            .build());
 
         // Add activities for the last 30 days
         Random random = new Random();

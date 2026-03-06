@@ -1,0 +1,8 @@
+target
+.git
+.gitignore
+README.md
+backend.log
+data
+.env
+.mvn/wrapper/*.jar

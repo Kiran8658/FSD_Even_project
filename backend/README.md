@@ -137,13 +137,46 @@ This account comes with pre-populated:
 - Password: (empty)
 
 ### Production (MySQL)
-Update `application.properties`:
-```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/fedfdb
-spring.datasource.username=your_username
-spring.datasource.password=your_password
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+The project includes a MySQL profile in `src/main/resources/application-mysql.properties`.
+
+By default, the backend now uses MySQL (profile `mysql`) unless you explicitly set `SPRING_PROFILES_ACTIVE=h2`.
+
+Run with MySQL:
+```bash
+cd backend
+
+# Recommended: create backend/.env once (so users persist in MySQL across restarts)
+cp .env.example .env
+# then edit .env and set DB_PASSWORD
+
+# Option A: helper script (prompts for DB password)
+./run-mysql.sh
+
+# Option B: set env vars manually
+
+# Set these for your MySQL instance
+export DB_HOST=localhost
+export DB_PORT=3306
+export DB_NAME=fedfdb
+export DB_USER=root
+export DB_PASSWORD='YOUR_MYSQL_PASSWORD'
+
+# Optional (explicit)
+export SPRING_PROFILES_ACTIVE=mysql
+
+mvn -DskipTests spring-boot:run
+```
+
+Use H2 (in-memory) instead:
+```bash
+cd backend
+
+# Option A: helper script
+./run-h2.sh
+
+# Option B: set the profile manually
+export SPRING_PROFILES_ACTIVE=h2
+mvn -DskipTests spring-boot:run
 ```
 
 ## Project Structure

@@ -54,8 +54,10 @@ Thumbs.db
 # Application
 application-local.properties
 application-prod.properties
+.env
 
 # H2 Database files
 *.db
+*.mv.db
 *.trace.db
 *.lock.db

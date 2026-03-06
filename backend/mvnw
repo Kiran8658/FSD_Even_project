@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -e
+
+# Convenience wrapper: keep using the Maven Wrapper script stored under .mvn/
+# This makes Linux/Render builds consistent with Windows (mvnw.cmd).
+exec sh "$(dirname "$0")/.mvn/mvnw" "$@"

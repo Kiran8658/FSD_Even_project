@@ -11,7 +11,8 @@ type WebSocketContextValue = {
 
 const WebSocketContext = createContext<WebSocketContextValue | undefined>(undefined)
 
-const WS_URL = 'http://localhost:8080/ws'
+const DEFAULT_WS_URL = 'http://localhost:8080/ws'
+const WS_URL = (import.meta.env.VITE_WS_URL?.trim() || DEFAULT_WS_URL).replace(/\/$/, '')
 const DASHBOARD_TOPIC = '/topic/dashboard'
 
 export function WebSocketProvider({ children }: { children: ReactNode }) {

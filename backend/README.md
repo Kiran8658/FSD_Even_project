@@ -1,6 +1,6 @@
-# FEDF Backend - Spring Boot
+# GhostWrite Backend - Spring Boot
 
-A Spring Boot backend for the FEDF Educational Dashboard application.
+A Spring Boot backend for the GhostWrite dashboard application.
 
 ## Tech Stack
 

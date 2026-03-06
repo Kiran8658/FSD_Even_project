@@ -32,5 +32,9 @@ public class UserDTO {
         private String resume;
         private String telegram;
         private String leetCode;
+        private String codeChef;
+        private String codeForces;
+        private String hackerRank;
+        private String atCoder;
     }
 }

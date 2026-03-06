@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,7 @@ public class UserService {
     }
 
     public UserDTO getUserById(String id) {
-        User user = userRepository.findById(id)
+        User user = userRepository.findById(Objects.requireNonNull(id, "id"))
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return mapToUserDTO(user);
     }
@@ -35,9 +36,8 @@ public class UserService {
         return mapToUserDTO(user);
     }
 
-    public UserDTO updateUser(String email, UserDTO updateRequest) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public UserDTO updateUser(String principalIdentifier, UserDTO updateRequest) {
+        User user = findByPrincipalIdentifier(principalIdentifier);
         
         if (updateRequest.getName() != null) user.setName(updateRequest.getName());
         if (updateRequest.getBio() != null) user.setBio(updateRequest.getBio());
@@ -53,9 +53,13 @@ public class UserService {
             if (l.getResume() != null) user.setLinkResume(l.getResume());
             if (l.getTelegram() != null) user.setLinkTelegram(l.getTelegram());
             if (l.getLeetCode() != null) user.setLinkLeetCode(l.getLeetCode());
+            if (l.getCodeChef() != null) user.setLinkCodeChef(l.getCodeChef());
+            if (l.getCodeForces() != null) user.setLinkCodeForces(l.getCodeForces());
+            if (l.getHackerRank() != null) user.setLinkHackerRank(l.getHackerRank());
+            if (l.getAtCoder() != null) user.setLinkAtCoder(l.getAtCoder());
         }
         
-        User updatedUser = userRepository.save(user);
+        User updatedUser = userRepository.save(Objects.requireNonNull(user, "user"));
         return mapToUserDTO(updatedUser);
     }
 
@@ -68,6 +72,10 @@ public class UserService {
                 .resume(user.getLinkResume())
                 .telegram(user.getLinkTelegram())
                 .leetCode(user.getLinkLeetCode())
+            .codeChef(user.getLinkCodeChef())
+            .codeForces(user.getLinkCodeForces())
+            .hackerRank(user.getLinkHackerRank())
+            .atCoder(user.getLinkAtCoder())
                 .build();
 
         return UserDTO.builder()
@@ -85,9 +93,8 @@ public class UserService {
                 .build();
     }
 
-    public void changePassword(String email, String currentPassword, String newPassword) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+    public void changePassword(String principalIdentifier, String currentPassword, String newPassword) {
+        User user = findByPrincipalIdentifier(principalIdentifier);
 
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new RuntimeException("Current password is incorrect");
@@ -98,9 +105,19 @@ public class UserService {
     }
 
     @Transactional
-    public void deleteAccount(String email) {
-        User user = userRepository.findByEmail(email)
+    public void deleteAccount(String principalIdentifier) {
+        User user = findByPrincipalIdentifier(principalIdentifier);
+        userRepository.delete(Objects.requireNonNull(user, "user"));
+    }
+
+    private User findByPrincipalIdentifier(String principalIdentifier) {
+        if (principalIdentifier == null || principalIdentifier.isBlank()) {
+            throw new RuntimeException("User not found");
+        }
+
+        // In this app, Spring Security principal is typically the email.
+        return userRepository.findByEmail(principalIdentifier)
+                .or(() -> userRepository.findByUsername(principalIdentifier))
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        userRepository.delete(user);
     }
 }

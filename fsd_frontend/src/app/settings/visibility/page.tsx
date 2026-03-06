@@ -13,19 +13,26 @@ const defaultSettings = {
     showPlatformStats: true,
   }
 
+type VisibilitySettings = typeof defaultSettings
+
 export default function VisibilityPage() {
-  const [settings, setSettings] = useState(() => {
+  const [settings, setSettings] = useState<VisibilitySettings>(() => {
     try {
       const saved = localStorage.getItem('fedf_visibility')
-      return saved ? JSON.parse(saved) : defaultSettings
-    } catch { return defaultSettings }
+      if (!saved) return defaultSettings
+      const parsed = JSON.parse(saved) as Partial<VisibilitySettings>
+      return { ...defaultSettings, ...parsed }
+    } catch {
+      return defaultSettings
+    }
   })
   const [toast, setToast] = useState<string | null>(null)
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(null), 2500) }
 
-  const toggle = (key: keyof typeof settings) => setSettings(p => ({ ...p, [key]: !p[key] }))
+  const toggle = (key: keyof VisibilitySettings) =>
+    setSettings((prev) => ({ ...prev, [key]: !prev[key] }))
 
-  const ToggleRow = ({ label, desc, k }: { label: string; desc: string; k: keyof typeof settings }) => (
+  const ToggleRow = ({ label, desc, k }: { label: string; desc: string; k: keyof VisibilitySettings }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0', borderBottom: '1px solid var(--border-subtle)' }}>
       <div>
         <p style={{ margin: 0, fontWeight: 500, fontSize: 'var(--font-size-sm)' }}>{label}</p>
@@ -71,7 +78,14 @@ export default function VisibilityPage() {
             </div>
 
             <button
-              onClick={() => { localStorage.setItem('fedf_visibility', JSON.stringify(settings)); showToast('Visibility settings saved!') }}
+              onClick={() => {
+                try {
+                  localStorage.setItem('fedf_visibility', JSON.stringify(settings))
+                } catch {
+                  // ignore storage errors
+                }
+                showToast('Visibility settings saved!')
+              }}
               style={{ marginTop: '24px', padding: '10px 28px', background: 'var(--accent-primary)', border: 'none', borderRadius: '8px', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: 'var(--font-size-sm)' }}
               onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
               onMouseLeave={e => e.currentTarget.style.opacity = '1'}

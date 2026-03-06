@@ -5,7 +5,7 @@ import '../App.css'
 export function Sidebar() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { signOut, user } = useAuth()
+  const { signOut } = useAuth()
 
   const handleLogOut = () => {
     signOut()
@@ -132,7 +132,7 @@ export function Sidebar() {
       {/* Bottom Section */}
       <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: 'var(--space-lg)', display: 'flex', flexDirection: 'column', gap: 'var(--space-sm)' }}>
         <button
-          onClick={() => navigate(`/profile/${user?.username || 'me'}`)}
+          onClick={() => navigate('/settings/profile-details')}
           style={{
             display: 'flex',
             alignItems: 'center',

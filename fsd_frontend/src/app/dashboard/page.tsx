@@ -11,8 +11,10 @@ import api from '../../services/api'
 import type { DashboardStats, ActivityData, Skill, Insight } from '../../types/dashboard'
 import type { Achievement } from '../../types/achievements'
 import { ACHIEVEMENTS } from '../../types/achievements'
+import { useWebSocket } from '../../context/WebSocketContext'
 
 export default function DashboardPage() {
+  const { dashboardStats } = useWebSocket()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [activities, setActivities] = useState<ActivityData[]>([])
   const [skills, setSkills] = useState<Skill[]>([])
@@ -20,6 +22,26 @@ export default function DashboardPage() {
   const [achievements, setAchievements] = useState<Achievement[]>(ACHIEVEMENTS)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const computeAchievements = (nextStats: DashboardStats) => {
+    return ACHIEVEMENTS.map((ach) => {
+      let unlocked = false
+      if (ach.id === 'first_step' && nextStats.totalActivities >= 1) unlocked = true
+      if (ach.id === 'on_fire' && nextStats.currentStreak >= 7) unlocked = true
+      if (ach.id === 'consistent' && nextStats.consistencyRate >= 80) unlocked = true
+      if (ach.id === 'skill_master' && nextStats.skillsLearned >= 5) unlocked = true
+      if (ach.id === 'unstoppable' && nextStats.currentStreak >= 30) unlocked = true
+      if (ach.id === 'legend' && nextStats.totalActivities >= 100) unlocked = true
+      if (ach.id === 'perfectionist' && nextStats.consistencyRate >= 95) unlocked = true
+      if (ach.id === 'renaissance' && nextStats.skillsLearned >= 10) unlocked = true
+
+      return {
+        ...ach,
+        unlocked,
+        unlockedDate: unlocked ? new Date().toISOString() : undefined
+      }
+    })
+  }
 
   useEffect(() => {
     const loadDashboard = async () => {
@@ -56,24 +78,7 @@ export default function DashboardPage() {
         setInsights(insightsData)
 
         // Check unlocked achievements
-        const unlockedAchievements = ACHIEVEMENTS.map((ach) => {
-          let unlocked = false
-          if (ach.id === 'first_step' && statsData.totalActivities >= 1) unlocked = true
-          if (ach.id === 'on_fire' && statsData.currentStreak >= 7) unlocked = true
-          if (ach.id === 'consistent' && statsData.consistencyRate >= 80) unlocked = true
-          if (ach.id === 'skill_master' && statsData.skillsLearned >= 5) unlocked = true
-          if (ach.id === 'unstoppable' && statsData.currentStreak >= 30) unlocked = true
-          if (ach.id === 'legend' && statsData.totalActivities >= 100) unlocked = true
-          if (ach.id === 'perfectionist' && statsData.consistencyRate >= 95) unlocked = true
-          if (ach.id === 'renaissance' && statsData.skillsLearned >= 10) unlocked = true
-          
-          return {
-            ...ach,
-            unlocked,
-            unlockedDate: unlocked ? new Date().toISOString() : undefined
-          }
-        })
-        setAchievements(unlockedAchievements)
+        setAchievements(computeAchievements(statsData))
       } catch (error: any) {
         console.error('Failed to load dashboard:', error)
         const errorMsg = error.response?.data?.message || error.message || 'Failed to load dashboard data'
@@ -84,6 +89,12 @@ export default function DashboardPage() {
 
     loadDashboard()
   }, [])
+
+  useEffect(() => {
+    if (!dashboardStats) return
+    setStats(dashboardStats)
+    setAchievements(computeAchievements(dashboardStats))
+  }, [dashboardStats])
 
   return (
     <>

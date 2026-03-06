@@ -23,18 +23,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Check if user is already logged in and token is valid
   useEffect(() => {
-    const storedUser = localStorage.getItem('ghostwrite_user')
-    const token = localStorage.getItem('ghostwrite_token')
+    try {
+      const storedUser = localStorage.getItem('ghostwrite_user')
+      const token = localStorage.getItem('ghostwrite_token')
 
-    if (storedUser && token) {
-      try {
-        setUser(JSON.parse(storedUser))
-      } catch (err) {
-        localStorage.removeItem('ghostwrite_user')
-        localStorage.removeItem('ghostwrite_token')
+      if (storedUser && token) {
+        try {
+          setUser(JSON.parse(storedUser))
+        } catch {
+          localStorage.removeItem('ghostwrite_user')
+          localStorage.removeItem('ghostwrite_token')
+        }
       }
+    } catch {
+      // If storage is unavailable, proceed unauthenticated.
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }, [])
 
   const signUp = async (name: string, username: string, email: string, password: string) => {
@@ -45,8 +50,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const response = await api.signUp(name, username, email, password)
       
       // Store user and JWT token
-      localStorage.setItem('ghostwrite_user', JSON.stringify(response.user))
-      localStorage.setItem('ghostwrite_token', response.token)
+      try {
+        localStorage.setItem('ghostwrite_user', JSON.stringify(response.user))
+        localStorage.setItem('ghostwrite_token', response.token)
+      } catch {
+        // ignore storage errors
+      }
       
       setUser(response.user)
     } catch (err: any) {
@@ -73,8 +82,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       })
       
       // Store user and JWT token
-      localStorage.setItem('ghostwrite_user', JSON.stringify(response.user))
-      localStorage.setItem('ghostwrite_token', response.token)
+      try {
+        localStorage.setItem('ghostwrite_user', JSON.stringify(response.user))
+        localStorage.setItem('ghostwrite_token', response.token)
+      } catch {
+        // ignore storage errors
+      }
       
       console.log('Stored in localStorage:', {
         user: !!localStorage.getItem('ghostwrite_user'),
@@ -84,7 +97,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(response.user)
     } catch (err: any) {
       console.error('Sign in error:', err)
-      const errorMessage = err.response?.data?.message || err.message || 'Sign in failed'
+      const status = err.response?.status
+      const backendMessage: string | undefined = err.response?.data?.message
+      let errorMessage = backendMessage || err.message || 'Sign in failed'
+
+      const normalized = (backendMessage || '').toLowerCase()
+      const looksLikeWrongCredentials =
+        status === 401 ||
+        status === 403 ||
+        (status === 400 && (normalized.includes('invalid email or password') || normalized.includes('bad credentials')))
+
+      if (looksLikeWrongCredentials) {
+        errorMessage = 'Username or password is wrong.'
+      }
       setError(errorMessage)
       throw new Error(errorMessage)
     } finally {
@@ -94,8 +119,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = () => {
     setUser(null)
-    localStorage.removeItem('ghostwrite_user')
-    localStorage.removeItem('ghostwrite_token')
+    try {
+      localStorage.removeItem('ghostwrite_user')
+      localStorage.removeItem('ghostwrite_token')
+    } catch {
+      // ignore storage errors
+    }
     setError(null)
   }
 
@@ -107,7 +136,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (user) {
       const updated = { ...user, ...data }
       setUser(updated)
-      localStorage.setItem('ghostwrite_user', JSON.stringify(updated))
+      try {
+        localStorage.setItem('ghostwrite_user', JSON.stringify(updated))
+      } catch {
+        // ignore storage errors
+      }
     }
   }
 

@@ -9,6 +9,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -54,6 +55,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Method " + ex.getMethod() + " not supported. Use " + 
                         String.join(", ", ex.getSupportedMethods() != null ? ex.getSupportedMethods() : new String[]{"POST"})));
     }
+
+        @ExceptionHandler(NoResourceFoundException.class)
+        public ResponseEntity<ApiResponse<String>> handleNoResourceFound(NoResourceFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(ApiResponse.error("Not found"));
+        }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<String>> handleGenericException(Exception ex) {

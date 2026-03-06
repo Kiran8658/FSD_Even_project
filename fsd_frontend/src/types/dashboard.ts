@@ -15,7 +15,30 @@ export interface User {
     resume?: string
     telegram?: string
     leetCode?: string
+    codeChef?: string
+    codeForces?: string
+    hackerRank?: string
+    atCoder?: string
   }
+}
+
+export type PlatformStat = {
+  handle?: string | null
+  profileUrl?: string | null
+  solved?: number | null
+  globalRank?: number | null
+  contests?: number | null
+  rating?: number | null
+  rankText?: string | null
+  easy?: number | null
+  medium?: number | null
+  hard?: number | null
+  error?: string | null
+}
+
+export type PlatformStatsSummary = {
+  totalSolved: number
+  platforms: Record<string, PlatformStat>
 }
 
 export interface ActivityData {

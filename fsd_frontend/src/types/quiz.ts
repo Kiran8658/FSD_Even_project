@@ -10,6 +10,20 @@ export type CompanyKit = {
   tags: string[]
 }
 
+export type RoleProfile = {
+  title: string
+  salary: string
+  requiredSubjects: string[]
+  interviewQuestions: string[]
+  sourceUrl?: string | null
+}
+
+export type CompanyProfile = {
+  company: string
+  lastSynced: string
+  roles: RoleProfile[]
+}
+
 export type CompanyKitResponse = {
   username: string
   lastSynced: string

@@ -18,8 +18,9 @@ export default function QuizPage() {
       setError(null)
       const response = await api.getCompanyKits()
       setKitData(response)
-    } catch (err: any) {
-      const message = err.response?.data?.message || err.message || 'Failed to load company kits'
+    } catch (err: unknown) {
+      const errorObj = err as { response?: { data?: { message?: string } }; message?: string }
+      const message = errorObj?.response?.data?.message || errorObj?.message || 'Failed to load company kits'
       setError(message)
     } finally {
       setLoading(false)
@@ -157,11 +158,15 @@ export default function QuizPage() {
                     }}>
                       <small className="text-muted">Updated {kit.lastUpdated}</small>
                       <button
-                        onClick={() => navigate('/plan', { state: { company: kit.company } })}
+                        onClick={() =>
+                          navigate(`/quiz/company/${encodeURIComponent(kit.company)}`, {
+                            state: { kit }
+                          })
+                        }
                         style={{
                           padding: 'var(--space-xs) var(--space-md)',
                           background: 'var(--accent-primary)',
-                          color: '#fff',
+                          color: 'var(--text-inverse)',
                           border: 'none',
                           borderRadius: 'var(--radius-md)',
                           cursor: 'pointer',
@@ -169,7 +174,7 @@ export default function QuizPage() {
                           fontSize: 'var(--font-size-sm)'
                         }}
                       >
-                        Open Workspace
+                        Open Profile
                       </button>
                     </div>
                   </div>

@@ -13,12 +13,21 @@ const problemPlatforms = [
   { key: 'leetcode', label: 'LeetCode', icon: 'https://cdn.simpleicons.org/leetcode/FFA116', prefix: 'https://leetcode.com/u/' },
   { key: 'codestudio', label: 'CodeStudio', icon: 'https://cdn.simpleicons.org/codingninjas/E05D0E', prefix: 'https://www.naukri.com/code360/profile/' },
   { key: 'geeksforgeeks', label: 'GeeksForGeeks', icon: 'https://cdn.simpleicons.org/geeksforgeeks/2F8D46', prefix: 'https://www.geeksforgeeks.org/user/' },
-  { key: 'interviewbit', label: 'InterviewBit', icon: 'https://cdn.simpleicons.org/interviewbit/4B92DB', prefix: 'https://www.interviewbit.com/profile/' },
+  { key: 'interviewbit', label: 'InterviewBit', icon: 'https://cdn.simpleicons.org/simpleicons/4B92DB', prefix: 'https://www.interviewbit.com/profile/' },
   { key: 'codechef', label: 'CodeChef', icon: 'https://cdn.simpleicons.org/codechef/5B4638', prefix: 'https://www.codechef.com/users/' },
   { key: 'codeforces', label: 'CodeForces', icon: 'https://cdn.simpleicons.org/codeforces/1F8ACB', prefix: 'https://codeforces.com/profile/' },
   { key: 'hackerrank', label: 'HackerRank', icon: 'https://cdn.simpleicons.org/hackerrank/2EC866', prefix: 'https://www.hackerrank.com/profile/' },
-  { key: 'atcoder', label: 'AtCoder', icon: 'https://cdn.simpleicons.org/atcoder/222222', prefix: 'https://atcoder.jp/users/' },
+  { key: 'atcoder', label: 'AtCoder', icon: 'https://cdn.simpleicons.org/simpleicons/222222', prefix: 'https://atcoder.jp/users/' },
 ]
+
+const linkFieldByKey: Record<string, string> = {
+  github: 'github',
+  leetcode: 'leetCode',
+  codechef: 'codeChef',
+  codeforces: 'codeForces',
+  hackerrank: 'hackerRank',
+  atcoder: 'atCoder'
+}
 
 export default function PlatformsSettingsPage() {
   const { user, updateUser } = useAuth()
@@ -39,13 +48,25 @@ export default function PlatformsSettingsPage() {
       }
       const gh = extractUsername(user.links.github, 'https://github.com/')
       const lc = extractUsername(user.links.leetCode, 'https://leetcode.com/u/')
+      const cc = extractUsername(user.links.codeChef, 'https://www.codechef.com/users/')
+      const cf = extractUsername(user.links.codeForces, 'https://codeforces.com/profile/')
+      const hr = extractUsername(user.links.hackerRank, 'https://www.hackerrank.com/profile/')
+      const ac = extractUsername(user.links.atCoder, 'https://atcoder.jp/users/')
       const init: Record<string, string> = { ...usernames }
       if (gh) { init.github = gh }
       if (lc) { init.leetcode = lc }
+      if (cc) { init.codechef = cc }
+      if (cf) { init.codeforces = cf }
+      if (hr) { init.hackerrank = hr }
+      if (ac) { init.atcoder = ac }
       setUsernames(init)
       const v = new Set<string>()
       if (gh) v.add('github')
       if (lc) v.add('leetcode')
+      if (cc) v.add('codechef')
+      if (cf) v.add('codeforces')
+      if (hr) v.add('hackerrank')
+      if (ac) v.add('atcoder')
       setVerified(v)
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -58,13 +79,13 @@ export default function PlatformsSettingsPage() {
 
   const handleSubmit = async (key: string, label: string) => {
     if (!usernames[key]) return
-    // Persist github & leetcode to backend
-    if (key === 'github' || key === 'leetcode') {
-      const prefix = key === 'github' ? 'https://github.com/' : 'https://leetcode.com/u/'
-      const linkField = key === 'github' ? 'github' : 'leetCode'
+    const allPlatforms = [...devPlatforms, ...problemPlatforms]
+    const platform = allPlatforms.find(p => p.key === key)
+    const linkField = linkFieldByKey[key]
+    if (platform && linkField) {
       try {
         const updated = await api.updateProfile({
-          links: { ...user?.links, [linkField]: `${prefix}${usernames[key]}` }
+          links: { ...user?.links, [linkField]: `${platform.prefix}${usernames[key]}` }
         })
         updateUser(updated)
       } catch {

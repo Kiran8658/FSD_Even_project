@@ -1,69 +1,9 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Navbar } from '../../../components/Navbar'
 import { Sidebar } from '../../../components/Sidebar'
 import api from '../../../services/api'
-import type { User } from '../../../types/dashboard'
-
-const ICON_SIZE = 18
-
-const SOCIAL_ICONS: Record<string, ReactNode> = {
-  email: (
-    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M20 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 2-8 5-8-5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M4 19h16a2 2 0 0 0 2-2V7"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-      />
-    </svg>
-  ),
-  linkedin: (
-    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M4.98 3.5A2.5 2.5 0 1 1 5 8.5a2.5 2.5 0 0 1-.02-5ZM3 9h4v12H3zM10 9h3.8v1.71h.05c.53-1 1.82-2 3.75-2 4 0 4.75 2.4 4.75 5.51V21H19v-6.13c0-1.46-.03-3.34-2.03-3.34-2.03 0-2.35 1.58-2.35 3.23V21h-3.8Z"
-        fill="currentColor"
-      />
-    </svg>
-  ),
-  twitter: (
-    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M18.244 2H21l-6.356 7.271L22 22h-6.778l-4.771-6.244L4.9 22H2.14l6.815-7.8L2 2h6.889l4.27 5.6z"
-        fill="currentColor"
-      />
-    </svg>
-  ),
-  website: (
-    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Zm0 2a12 12 0 0 1 3.5 8 12 12 0 0 1-3.5 8 12 12 0 0 1-3.5-8 12 12 0 0 1 3.5-8Zm-7.95 8a8 8 0 0 1 0-2h15.9a8 8 0 0 1 0 2Z"
-        fill="currentColor"
-      />
-    </svg>
-  ),
-  resume: (
-    <svg width={ICON_SIZE} height={ICON_SIZE} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-      <path
-        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Zm0 0v6h6M9 13h6M9 17h4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  )
-}
+import type { User, PlatformStatsSummary, PlatformStat } from '../../../types/dashboard'
 
 export default function ProfilePage() {
   const params = useParams<{ username?: string }>()
@@ -72,8 +12,9 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [statsExpanded, setStatsExpanded] = useState(true)
-  const [addPlatformVisible, setAddPlatformVisible] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [platformStats, setPlatformStats] = useState<PlatformStatsSummary | null>(null)
+  const [platformStatsLoading, setPlatformStatsLoading] = useState(false)
 
   const showToast = (msg: string) => {
     setToast(msg)
@@ -81,7 +22,7 @@ export default function ProfilePage() {
   }
 
   const handleVerificationClick = () => {
-    navigate('/settings?section=verification')
+    navigate('/settings/profile-details')
   }
 
   const openExternalLink = (url?: string) => {
@@ -91,45 +32,6 @@ export default function ProfilePage() {
     }
     window.open(url, '_blank', 'noopener,noreferrer')
   }
-
-  const socialActions = user ? [
-    {
-      label: 'Email',
-      icon: SOCIAL_ICONS.email,
-      color: 'var(--text-primary)',
-      onClick: () => {
-        if (!user.email) {
-          showToast('No email available yet.')
-          return
-        }
-        window.location.href = `mailto:${user.email}`
-      }
-    },
-    {
-      label: 'LinkedIn',
-      icon: SOCIAL_ICONS.linkedin,
-      color: '#0A66C2',
-      onClick: () => openExternalLink(user.links?.linkedIn)
-    },
-    {
-      label: 'X / Twitter',
-      icon: SOCIAL_ICONS.twitter,
-      color: '#000000',
-      onClick: () => openExternalLink(user.links?.twitter)
-    },
-    {
-      label: 'Website',
-      icon: SOCIAL_ICONS.website,
-      color: 'var(--accent-primary)',
-      onClick: () => openExternalLink(user.links?.website)
-    },
-    {
-      label: 'Resume',
-      icon: SOCIAL_ICONS.resume,
-      color: '#F97316',
-      onClick: () => openExternalLink(user.links?.resume)
-    }
-  ] : []
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -146,6 +48,17 @@ export default function ProfilePage() {
 
         const userData = await api.getUser(username)
         setUser(userData)
+
+        setPlatformStatsLoading(true)
+        try {
+          const stats = await api.getPlatformStats(username)
+          setPlatformStats(stats)
+        } catch {
+          setPlatformStats(null)
+        } finally {
+          setPlatformStatsLoading(false)
+        }
+
         setLoading(false)
       } catch (err) {
         setError('Failed to load profile')
@@ -165,6 +78,66 @@ export default function ProfilePage() {
           <p className="text-muted">Loading profile...</p>
         </main>
       </>
+    )
+  }
+
+  const getSolved = (key: string): number | null => {
+    const stat = platformStats?.platforms?.[key]
+    if (!stat) return null
+    return typeof stat.solved === 'number' ? stat.solved : null
+  }
+
+  const normalizeProfileUrl = (link: string | undefined, prefix: string, home: string) => {
+    if (!link) return home
+    const trimmed = link.trim()
+    if (!trimmed) return home
+    if (/^https?:\/\//i.test(trimmed)) return trimmed
+    return prefix + trimmed.replace(/^\/+/, '')
+  }
+
+  const platformRow = (name: string, icon: string, key: string, fallbackUrl: string) => {
+    const stat: PlatformStat | undefined = platformStats?.platforms?.[key]
+    const solved = getSolved(key)
+    const url = stat?.profileUrl || fallbackUrl
+
+    const value = platformStatsLoading ? '…' : (solved == null ? '-' : String(solved))
+    const disabled = !url
+
+    return (
+      <div key={key} style={{
+        display: 'flex',
+        alignItems: 'center',
+        padding: 'var(--space-md)',
+        background: 'rgba(14, 165, 233, 0.05)',
+        borderRadius: 'var(--radius-md)',
+        cursor: disabled ? 'default' : 'pointer',
+        transition: 'all 0.3s ease',
+        opacity: disabled ? 0.6 : 1
+      }}
+      onClick={() => {
+        if (!url) {
+          showToast('Add this platform in Settings to activate it.')
+          return
+        }
+        window.open(url, '_blank', 'noopener,noreferrer')
+      }}
+      onMouseEnter={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(14, 165, 233, 0.1)' }}
+      onMouseLeave={(e) => { if (!disabled) e.currentTarget.style.background = 'rgba(14, 165, 233, 0.05)' }}>
+        <img src={icon} alt={name} width="26" height="26" style={{ marginRight: 'var(--space-md)', flexShrink: 0 }} />
+        <div style={{ flex: 1 }}>
+          <p style={{ margin: 0, fontWeight: 500, fontSize: 'var(--font-size-sm)' }}>
+            {name}
+          </p>
+          {stat?.error && (
+            <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--text-tertiary)' }}>
+              {stat.error}
+            </p>
+          )}
+        </div>
+        <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--accent-primary)', fontWeight: 600 }}>
+          {value}
+        </span>
+      </div>
     )
   }
 
@@ -336,34 +309,31 @@ export default function ProfilePage() {
               {/* Platform Stats */}
               {statsExpanded && <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
                 {[
-                  { name: 'LeetCode', icon: 'https://cdn.simpleicons.org/leetcode/FFA116', problems: 245, url: 'https://leetcode.com' },
-                  { name: 'CodeChef', icon: 'https://cdn.simpleicons.org/codechef/5B4638', problems: 89, url: 'https://www.codechef.com' },
-                  { name: 'CodeForces', icon: 'https://cdn.simpleicons.org/codeforces/1F8ACB', problems: 34, url: 'https://codeforces.com' },
-                  { name: 'HackerRank', icon: 'https://cdn.simpleicons.org/hackerrank/2EC866', problems: 42, url: 'https://www.hackerrank.com' }
-                ].map((platform) => (
-                  <div key={platform.name} style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: 'var(--space-md)',
-                    background: 'rgba(14, 165, 233, 0.05)',
-                    borderRadius: 'var(--radius-md)',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onClick={() => window.open(platform.url, '_blank', 'noopener,noreferrer')}
-                  onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(14, 165, 233, 0.1)'}
-                  onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(14, 165, 233, 0.05)'}>
-                    <img src={platform.icon} alt={platform.name} width="26" height="26" style={{ marginRight: 'var(--space-md)', flexShrink: 0 }} />
-                    <div style={{ flex: 1 }}>
-                      <p style={{ margin: 0, fontWeight: 500, fontSize: 'var(--font-size-sm)' }}>
-                        {platform.name}
-                      </p>
-                    </div>
-                    <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--accent-primary)', fontWeight: 600 }}>
-                      {platform.problems}
-                    </span>
-                  </div>
-                ))}
+                  platformRow(
+                    'LeetCode',
+                    'https://cdn.simpleicons.org/leetcode/FFA116',
+                    'leetcode',
+                    normalizeProfileUrl(user.links?.leetCode, 'https://leetcode.com/u/', 'https://leetcode.com')
+                  ),
+                  platformRow(
+                    'CodeChef',
+                    'https://cdn.simpleicons.org/codechef/5B4638',
+                    'codechef',
+                    normalizeProfileUrl(user.links?.codeChef, 'https://www.codechef.com/users/', 'https://www.codechef.com')
+                  ),
+                  platformRow(
+                    'CodeForces',
+                    'https://cdn.simpleicons.org/codeforces/1F8ACB',
+                    'codeforces',
+                    normalizeProfileUrl(user.links?.codeForces, 'https://codeforces.com/profile/', 'https://codeforces.com')
+                  ),
+                  platformRow(
+                    'HackerRank',
+                    'https://cdn.simpleicons.org/hackerrank/2EC866',
+                    'hackerrank',
+                    normalizeProfileUrl(user.links?.hackerRank, 'https://www.hackerrank.com/profile/', 'https://www.hackerrank.com')
+                  )
+                ]}
               </div>}
 
               <button
@@ -440,7 +410,7 @@ export default function ProfilePage() {
               marginBottom: 'var(--space-2xl)'
             }}>
               {[
-                { label: 'Total Questions', value: '655', subtext: 'Submissions' },
+                { label: 'Total Questions', value: platformStatsLoading ? '…' : String(platformStats?.totalSolved ?? 0), subtext: 'Solved across platforms' },
                 { label: 'Total Active Days', value: '80', subtext: 'Max Streak: 11' },
                 { label: 'Current Streak', value: '0', subtext: 'Days' },
                 { label: 'Rank', value: '#10368', subtext: 'Weekly Rank' }
@@ -457,45 +427,6 @@ export default function ProfilePage() {
                   </p>
                 </div>
               ))}
-            </div>
-
-            {/* Activity Heatmap */}
-            <div className="card" style={{ padding: 'var(--space-lg)', marginBottom: 'var(--space-2xl)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
-                <h3 style={{ margin: 0, fontSize: 'var(--font-size-lg)' }}>Activity</h3>
-                <select style={{
-                  background: 'rgba(14, 165, 233, 0.1)',
-                  border: '1px solid rgba(14, 165, 233, 0.3)',
-                  borderRadius: 'var(--radius-md)',
-                  padding: 'var(--space-sm)',
-                  color: 'var(--text-primary)',
-                  cursor: 'pointer'
-                }}>
-                  <option>Current</option>
-                  <option>Last Month</option>
-                  <option>Last Year</option>
-                </select>
-              </div>
-
-              {/* Mini Calendar */}
-              <div style={{ overflowX: 'auto' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(14, 1fr)', gap: '2px', minWidth: '350px' }}>
-                  {Array.from({ length: 14 * 7 }).map((_, i) => {
-                    const intensity = Math.random() > 0.7 ? Math.random() > 0.5 ? 3 : 2 : Math.random() > 0.5 ? 1 : 0
-                    const colors = ['transparent', 'rgba(76, 175, 80, 0.3)', 'rgba(76, 175, 80, 0.6)', 'rgba(76, 175, 80, 1)']
-                    return (
-                      <div key={i} style={{
-                        width: '20px',
-                        height: '20px',
-                        borderRadius: '4px',
-                        background: colors[intensity],
-                        border: '1px solid var(--border-subtle)',
-                        cursor: 'pointer'
-                      }} />
-                    )
-                  })}
-                </div>
-              </div>
             </div>
 
             {/* Problems Solved Section */}

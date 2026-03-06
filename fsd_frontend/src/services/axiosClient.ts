@@ -8,6 +8,7 @@ const API_BASE_URL = (configuredBase && configuredBase.length > 0 ? configuredBa
 export const axiosClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -16,9 +17,13 @@ export const axiosClient = axios.create({
 // Request interceptor - attach JWT token to every request
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('ghostwrite_token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+    try {
+      const token = localStorage.getItem('ghostwrite_token')
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+    } catch {
+      // ignore storage errors
     }
     return config
   },
@@ -34,8 +39,12 @@ axiosClient.interceptors.response.use(
     // If 401 or 403 (Unauthorized/Forbidden), token expired or invalid - redirect to login
     if (error.response?.status === 401 || error.response?.status === 403) {
       console.error('Authentication error:', error.response?.status, error.response?.data)
-      localStorage.removeItem('ghostwrite_token')
-      localStorage.removeItem('ghostwrite_user')
+      try {
+        localStorage.removeItem('ghostwrite_token')
+        localStorage.removeItem('ghostwrite_user')
+      } catch {
+        // ignore storage errors
+      }
       window.location.href = '/signin'
     }
     return Promise.reject(error)

@@ -1,5 +1,6 @@
 package com.fedf.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -25,6 +26,9 @@ public class User {
     private String email;
     
     @Column(nullable = false)
+    @JsonIgnore
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private String password;
     
     private String name;
@@ -56,6 +60,18 @@ public class User {
 
     @Column(name = "link_leetcode")
     private String linkLeetCode;
+
+    @Column(name = "link_codechef")
+    private String linkCodeChef;
+
+    @Column(name = "link_codeforces")
+    private String linkCodeForces;
+
+    @Column(name = "link_hackerrank")
+    private String linkHackerRank;
+
+    @Column(name = "link_atcoder")
+    private String linkAtCoder;
 
     @Column(name = "join_date")
     private LocalDateTime joinDate;

@@ -1,55 +1,78 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Navbar } from '../../components/Navbar'
 import { Sidebar } from '../../components/Sidebar'
+import { api, type NoteRecord } from '../../services/api'
 
-interface Note {
-  id: string
+const COLORS = ['#2563eb', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444']
+
+type Note = {
+  id: number
   title: string
   content: string
   color: string
   createdAt: string
 }
 
-const COLORS = ['#2563eb', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444']
+const toUiNote = (n: NoteRecord): Note => ({
+  id: n.id,
+  title: n.title,
+  content: n.content || '',
+  color: n.color || COLORS[0],
+  createdAt: n.createdAt ? new Date(n.createdAt).toLocaleDateString() : new Date().toLocaleDateString()
+})
 
 export default function IdeasPage() {
-  const [notes, setNotes] = useState<Note[]>(() => {
-    try {
-      const saved = localStorage.getItem('fedf_notes')
-      return saved ? JSON.parse(saved) : []
-    } catch { return [] }
-  })
+  const [notes, setNotes] = useState<Note[]>([])
   const [draft, setDraft] = useState({ title: '', content: '' })
   const [editId, setEditId] = useState<string | null>(null)
 
-  const persist = (updated: Note[]) => {
-    setNotes(updated)
-    localStorage.setItem('fedf_notes', JSON.stringify(updated))
-  }
+  useEffect(() => {
+    let mounted = true
+    api.getNotes()
+      .then((data) => {
+        if (!mounted) return
+        setNotes(data.map(toUiNote))
+      })
+      .catch(() => {
+        // If unauthenticated, axiosClient will redirect to /signin.
+      })
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const handleSave = () => {
     if (!draft.title.trim()) return
     if (editId) {
-      persist(notes.map(n => n.id === editId ? { ...n, title: draft.title, content: draft.content } : n))
-      setEditId(null)
+      const id = Number(editId)
+      api.updateNote(id, { title: draft.title, content: draft.content, color: notes.find(n => n.id === id)?.color })
+        .then((updated) => {
+          setNotes((prev) =>
+            prev.map((n) => (n.id === id ? { ...n, title: updated.title, content: updated.content || n.content } : n))
+          )
+          setEditId(null)
+        })
+        .catch(() => {})
     } else {
-      const note: Note = {
-        id: Date.now().toString(),
-        title: draft.title,
-        content: draft.content,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
-        createdAt: new Date().toLocaleDateString()
-      }
-      persist([note, ...notes])
+      const color = COLORS[Math.floor(Math.random() * COLORS.length)]
+      api.createNote({ title: draft.title, content: draft.content, color })
+        .then((created) => {
+          setNotes((prev) => [toUiNote(created), ...prev])
+        })
+        .catch(() => {})
     }
     setDraft({ title: '', content: '' })
   }
 
-  const handleDelete = (id: string) => persist(notes.filter(n => n.id !== id))
+  const handleDelete = (id: number) => {
+    api.deleteNote(id)
+      .then(() => setNotes((prev) => prev.filter((n) => n.id !== id)))
+      .catch(() => {})
+  }
 
   const handleEdit = (note: Note) => {
     setDraft({ title: note.title, content: note.content })
-    setEditId(note.id)
+    setEditId(String(note.id))
   }
 
   return (

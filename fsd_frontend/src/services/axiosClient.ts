@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const DEFAULT_API_BASE = 'http://localhost:8080/api'
+const DEFAULT_API_BASE = 'https://fsd-even-project.onrender.com/api'
 const configuredBase = import.meta.env.VITE_API_BASE_URL?.trim()
 const API_BASE_URL = (configuredBase && configuredBase.length > 0 ? configuredBase : DEFAULT_API_BASE).replace(/\/$/, '')
 

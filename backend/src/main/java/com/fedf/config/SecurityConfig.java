@@ -28,16 +28,20 @@ public class SecurityConfig {
     private final RateLimitingFilter rateLimitingFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .cors(cors -> {})
+            .cors()
+            .and()
+            .csrf().disable()
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/",
+                    "/signin",
+                    "/signup",
                     "/ws/**",
                     "/api/auth/**",
                     "/api/public/**",
+                    "/api/**",
                     "/h2-console/**",
                     "/swagger-ui/**",
                     "/v3/api-docs/**",
@@ -52,11 +56,10 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             .addFilterBefore(rateLimitingFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())); // For H2 Console
-        
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()));
+
         return http.build();
     }
-
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();

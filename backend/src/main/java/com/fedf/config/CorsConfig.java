@@ -19,7 +19,7 @@ public class CorsConfig {
                                 "https://fsd-even-project-1.onrender.com",
                                 "http://localhost:5173"
                         )
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                        .allowedMethods("*")
                         .allowedHeaders("*")
                         .allowCredentials(true);
             }
